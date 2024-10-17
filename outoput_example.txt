@@ -1,0 +1,67 @@
+ProgramNode
+  Declarations: 
+    VarDeclNode
+      VarName: a
+      VarType: 
+        PrimitiveTypeNode
+          Type: integer
+      Expression: 
+        IntLiteralNode
+          IntValue: 42
+    VarDeclNode
+      VarName: b
+      VarType: 
+        PrimitiveTypeNode
+          Type: real
+      Expression: 
+    VarDeclNode
+      VarName: c
+      VarType: 
+        PrimitiveTypeNode
+          Type: real
+      Expression: 
+        RealLiteralNode
+          RealValue: 3.14
+    TypeDeclNode
+      TypeName: PersonAge
+      Type: 
+        PrimitiveTypeNode
+          Type: integer
+    VarDeclNode
+      VarName: age
+      VarType: 
+      Expression: 
+        IntLiteralNode
+          IntValue: 30
+    TypeDeclNode
+      TypeName: Vector
+      Type:
+        RecordTypeNode
+          Fields:
+            VarDeclNode
+              VarName: x
+              VarType:
+                PrimitiveTypeNode
+                  Type: real
+              Expression:
+            VarDeclNode
+              VarName: y
+              VarType:
+                PrimitiveTypeNode
+                  Type: real
+              Expression:
+    VarDeclNode
+      VarName: position
+      VarType:
+      Expression:
+    VarDeclNode
+      VarName: numbers
+      VarType:
+        ArrayTypeNode
+          SizeExpression:
+            IntLiteralNode
+              IntValue: 10
+          ElementType:
+            PrimitiveTypeNode
+              Type: integer
+      Expression:
