@@ -2,24 +2,25 @@ ProgramNode
   Declarations: 
     TypeDeclNode
       TypeName: Vector
-      Type: 
+      Type:
         RecordTypeNode
-          Fields: 
+          Fields:
             VarDeclNode
               VarName: x
-              VarType: 
+              VarType:
                 PrimitiveTypeNode
                   Type: real
-              Expression:
             VarDeclNode
               VarName: y
               VarType:
                 PrimitiveTypeNode
                   Type: real
-              Expression:
     RoutineDeclNode
       RoutineName: printCoordinates
       Parameters:
+        ParameterDeclNode
+          VarName: vector
+          Type:
       ReturnType:
       Body:
         PrintNode
@@ -37,5 +38,25 @@ ProgramNode
       Body:
         VarDeclNode
           VarName: init_position
-          VarType:
           Expression:
+            VarRefNode
+              VarName: begin
+        AssignmentNode
+          Left:
+            VarRefNode
+              VarName: init_position.x
+          Right:
+            RealLiteralNode
+              RealValue: 1.0
+        AssignmentNode
+          Left:
+            VarRefNode
+              VarName: init_position.y
+          Right:
+            RealLiteralNode
+              RealValue: 2.0
+    RoutineCallNode
+      RoutineName: printCoordinates
+      Parameters:
+        VarRefNode
+          VarName: init_position

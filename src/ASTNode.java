@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.ArrayList;
 
 abstract class ASTNode {}
 
@@ -10,8 +11,10 @@ class ProgramNode extends ASTNode {
     }
 }
 
+abstract class SimpleDeclarationNode extends ASTNode {
+}
 
-class VarDeclNode extends ASTNode {
+class VarDeclNode extends SimpleDeclarationNode {
     String varName;
     ASTNode varType;
     ASTNode expression;
@@ -21,9 +24,10 @@ class VarDeclNode extends ASTNode {
         this.varType = varType;
         this.expression = expression;
     }
+
 }
 
-class TypeDeclNode extends ASTNode {
+class TypeDeclNode extends SimpleDeclarationNode {
     String typeName;
     ASTNode type;
 
@@ -73,7 +77,18 @@ class RoutineDeclNode extends ASTNode {
     }
 }
 
-class AssignmentNode extends ASTNode {
+class RoutineCallNode extends StatementNode {
+    String routineName;
+    List<ASTNode> parameters;
+
+    RoutineCallNode(String routineName, List<ASTNode> parameters)
+    {
+        this.routineName = routineName;
+        this.parameters = parameters;
+    }
+}
+
+class AssignmentNode extends StatementNode {
     ASTNode left;
     ASTNode right;
 
@@ -83,7 +98,7 @@ class AssignmentNode extends ASTNode {
     }
 }
 
-class IfNode extends ASTNode {
+class IfNode extends StatementNode {
     ASTNode condition;
     List<ASTNode> thenBody;
     List<ASTNode> elseBody;
@@ -106,6 +121,43 @@ class BinaryOpNode extends ASTNode {
         this.right = right;
     }
 }
+
+abstract class ExpressionNode extends ASTNode {
+    public ExpressionNode() {
+        super();
+    }
+}
+
+class BinaryExpressionNode extends ExpressionNode {
+    private final ExpressionNode left;
+    private final String operator;
+    private final ExpressionNode right;
+
+    public BinaryExpressionNode(ExpressionNode left, String operator, ExpressionNode right) {
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+    }
+
+    // Getters
+    public ExpressionNode getLeft() {
+        return left;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public ExpressionNode getRight() {
+        return right;
+    }
+
+    public String toString() {
+        return "(" + left.toString() + " " + operator + " " + right.toString() + ")";
+    }
+
+}
+
 
 class IntLiteralNode extends ASTNode {
     int value;
@@ -159,7 +211,7 @@ class FieldAccessNode extends ASTNode {
     }
 }
 
-class WhileLoopNode extends ASTNode {
+class WhileLoopNode extends StatementNode {
     ASTNode condition;
     List<ASTNode> body;
 
@@ -169,7 +221,7 @@ class WhileLoopNode extends ASTNode {
     }
 }
 
-class ForLoopNode extends ASTNode {
+class ForLoopNode extends StatementNode {
     String iterator;
     ASTNode range;
     List<ASTNode> body;
@@ -181,7 +233,7 @@ class ForLoopNode extends ASTNode {
     }
 }
 
-class PrintNode extends ASTNode {
+class PrintNode extends StatementNode {
     ASTNode expression;
 
     PrintNode(ASTNode expression) {
@@ -189,12 +241,66 @@ class PrintNode extends ASTNode {
     }
 }
 
-class BreakNode extends ASTNode {}
+class BreakNode extends StatementNode {}
 
-class ReturnNode extends ASTNode {
+class ReturnNode extends StatementNode {
     ASTNode expression;
 
     ReturnNode(ASTNode expression) {
+        this.expression = expression;
+    }
+}
+
+class ParametersNode extends ASTNode {
+    List<ASTNode> parameters;
+
+    public ParametersNode(List<ASTNode> parameters) {
+        this.parameters = parameters;
+    }
+
+}
+
+class ParameterDeclNode extends ASTNode {
+    String varName;
+    ASTNode type;
+
+    public ParameterDeclNode(String varName, ASTNode type) {
+        this.varName = varName;
+        this.type = type;
+    }
+
+}
+
+class BodyNode extends ASTNode {
+    public List<SimpleDeclarationNode> simpleDeclarations;
+    public List<StatementNode> statements;
+
+    public BodyNode() {
+        this.simpleDeclarations = new ArrayList<>();
+        this.statements = new ArrayList<>();
+    }
+}
+
+abstract class StatementNode extends ASTNode {
+}
+
+
+class RangeNode extends ASTNode {
+    public ASTNode lowerBound; 
+    public ASTNode upperBound;
+
+    public RangeNode(ASTNode lowerBound, ASTNode upperBound) {
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
+    }
+}
+
+class FieldAssignmentNode extends ASTNode {
+    public String varName;
+    public ASTNode expression;
+
+    public FieldAssignmentNode(String variableName, ASTNode expression) {
+        this.varName = variableName;
         this.expression = expression;
     }
 }

@@ -3,10 +3,8 @@ public class ASTPrinter {
     public void printAST(ASTNode node, String indent) {
         if (node == null) return;
 
-        // Print the class name of the node
         System.out.println(indent + node.getClass().getSimpleName());
 
-        // Handle specific node types to print relevant information
         if (node instanceof ProgramNode) {
             ProgramNode programNode = (ProgramNode) node;
             System.out.println(indent + "  Declarations: ");
@@ -16,10 +14,14 @@ public class ASTPrinter {
         } else if (node instanceof VarDeclNode) {
             VarDeclNode varDecl = (VarDeclNode) node;
             System.out.println(indent + "  VarName: " + varDecl.varName);
-            System.out.println(indent + "  VarType: ");
-            printAST(varDecl.varType, indent + "    ");
-            System.out.println(indent + "  Expression: ");
-            printAST(varDecl.expression, indent + "    ");
+            if (varDecl.varType != null) {
+                System.out.println(indent + "  VarType: ");
+                printAST(varDecl.varType, indent + "    ");
+            }
+            if (varDecl.expression != null) {
+                System.out.println(indent + "  Expression: ");
+                printAST(varDecl.expression, indent + "    ");
+            }
         } else if (node instanceof TypeDeclNode) {
             TypeDeclNode typeDecl = (TypeDeclNode) node;
             System.out.println(indent + "  TypeName: " + typeDecl.typeName);
@@ -44,32 +46,46 @@ public class ASTPrinter {
             RoutineDeclNode routineDecl = (RoutineDeclNode) node;
             System.out.println(indent + "  RoutineName: " + routineDecl.routineName);
             System.out.println(indent + "  Parameters: ");
-            for (ASTNode param : routineDecl.parameters) {
-                printAST(param, indent + "    ");
+            if (routineDecl.parameters.isEmpty()) {
+                System.out.println(indent + "  No Parameters: ");
+            } else {
+                for (ASTNode param : routineDecl.parameters) {
+                    printAST(param, indent + "    ");
+                }
             }
-            System.out.println(indent + "  ReturnType: ");
-            printAST(routineDecl.returnType, indent + "    ");
+            if (routineDecl.returnType != null) {
+                System.out.println(indent + "  ReturnType: ");
+                printAST(routineDecl.returnType, indent + "    ");
+            } else {
+                System.out.println(indent + "  ReturnType: void");
+            }
             System.out.println(indent + "  Body: ");
             for (ASTNode bodyElement : routineDecl.body) {
                 printAST(bodyElement, indent + "    ");
             }
+        } else if (node instanceof RoutineCallNode) {
+            RoutineCallNode routineCall = (RoutineCallNode) node;
+            System.out.println(indent + "  RoutineName: " + routineCall.routineName);
+            System.out.println(indent + "  Parameters: ");
+            for (ASTNode param : routineCall.parameters) {
+                printAST(param, indent + "    ");
+            }
         } else if (node instanceof AssignmentNode) {
-                AssignmentNode assignment = (AssignmentNode) node;
-                System.out.println(indent + "  Left: ");
-                printAST(assignment.left, indent + "    ");
-                System.out.println(indent + "  Right: ");
-                if (assignment.right instanceof BinaryOpNode) {
-                    BinaryOpNode binaryOp = (BinaryOpNode) assignment.right;
-                    System.out.println(indent + "  Binary Operation: ");
-                    System.out.println(indent + "    Operator: " + binaryOp.operator);
-                    System.out.println(indent + "    Left Operand: ");
-                    printAST(binaryOp.left, indent + "      ");
-                    System.out.println(indent + "    Right Operand: ");
-                    printAST(binaryOp.right, indent + "      ");
-                } else {
-                    printAST(assignment.right, indent + "    ");
-                }
-        
+            AssignmentNode assignment = (AssignmentNode) node;
+            System.out.println(indent + "  Left: ");
+            printAST(assignment.left, indent + "    ");
+            System.out.println(indent + "  Right: ");
+            if (assignment.right instanceof BinaryOpNode) {
+                BinaryOpNode binaryOp = (BinaryOpNode) assignment.right;
+                System.out.println(indent + "  Binary Operation: ");
+                System.out.println(indent + "    Operator: " + binaryOp.operator);
+                System.out.println(indent + "    Left Operand: ");
+                printAST(binaryOp.left, indent + "      ");
+                System.out.println(indent + "    Right Operand: ");
+                printAST(binaryOp.right, indent + "      ");
+            } else {
+                printAST(assignment.right, indent + "    ");
+            }
         } else if (node instanceof IfNode) {
             IfNode ifNode = (IfNode) node;
             System.out.println(indent + "  Condition: ");
@@ -103,10 +119,8 @@ public class ASTPrinter {
             PrintNode printNode = (PrintNode) node;
             System.out.println(indent + "  Expression: ");
             printAST(printNode.expression, indent + "    ");
-
         } else if (node instanceof BreakNode) {
             System.out.println(indent + "  BreakStatement");
-
         } else if (node instanceof ReturnNode) {
             ReturnNode returnNode = (ReturnNode) node;
             System.out.println(indent + "  ReturnStatement");
@@ -144,6 +158,33 @@ public class ASTPrinter {
             System.out.println(indent + "  Record: ");
             printAST(fieldAccess.record, indent + "    ");
             System.out.println(indent + "  Field: " + fieldAccess.field);
+        } else if (node instanceof ParametersNode) {  // Handling ParametersNode
+            ParametersNode parametersNode = (ParametersNode) node;
+            System.out.println(indent + "  Parameters: ");
+            for (ASTNode param : parametersNode.parameters) {
+                printAST(param, indent + "    ");
+            }
+        } else if (node instanceof ParameterDeclNode) {  // Handling ParameterDeclNode
+            ParameterDeclNode parameterDecl = (ParameterDeclNode) node;
+            System.out.println(indent + "  VarName: " + parameterDecl.varName);
+            System.out.println(indent + "  Type: ");
+            printAST(parameterDecl.type, indent + "    ");
+        }
+        else if (node instanceof BodyNode) {
+            BodyNode bodyNode = (BodyNode) node;
+            System.out.println(indent + "  SimpleDeclarations: ");
+            for (SimpleDeclarationNode decl : bodyNode.simpleDeclarations) {
+                printAST(decl, indent + "    ");
+            }
+            System.out.println(indent + "  Statements: ");
+            for (StatementNode stmt : bodyNode.statements) {
+                printAST(stmt, indent + "    ");
+            }
+        } else if (node instanceof FieldAssignmentNode) {
+            FieldAssignmentNode fieldAssignmentNode = (FieldAssignmentNode) node;
+            System.out.println(indent + "  Field: " + fieldAssignmentNode.varName);
+            System.out.println(indent + "  Expression: ");
+            printAST(fieldAssignmentNode.expression, indent + "    ");
         }
     }
 }

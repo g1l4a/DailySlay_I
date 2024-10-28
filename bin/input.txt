@@ -9,6 +9,6 @@ routine printCoordinates(vector: Vector) : void is
 end
 
 routine mainVector() : void is
-    var init_position: Vector is (x: 1.0, y: 2.0)
+    var init_position: Vector is ( x: 1.0, y: 2.0 )
     printCoordinates(init_position)
 end
