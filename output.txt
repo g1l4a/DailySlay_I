@@ -1,5 +1,5 @@
 ProgramNode
-  Declarations: 
+  Declarations:
     TypeDeclNode
       TypeName: Vector
       Type:
@@ -21,7 +21,7 @@ ProgramNode
         ParameterDeclNode
           VarName: vector
           Type:
-      ReturnType:
+      ReturnType: void
       Body:
         PrintNode
           Expression:
@@ -33,30 +33,18 @@ ProgramNode
               VarName: vector.y
     RoutineDeclNode
       RoutineName: mainVector
-      Parameters:
-      ReturnType:
+      No Parameters:
+      ReturnType: void
       Body:
-        VarDeclNode
-          VarName: init_position
-          Expression:
+        RecordInitNode
+        RecordInit:
+          Variable Name: init_position
+          Type: Vector
+          Field Assignments:
+            Field: x
+            Field: y
+        RoutineCallNode
+          RoutineName: printCoordinates
+          Parameters:
             VarRefNode
-              VarName: begin
-        AssignmentNode
-          Left:
-            VarRefNode
-              VarName: init_position.x
-          Right:
-            RealLiteralNode
-              RealValue: 1.0
-        AssignmentNode
-          Left:
-            VarRefNode
-              VarName: init_position.y
-          Right:
-            RealLiteralNode
-              RealValue: 2.0
-    RoutineCallNode
-      RoutineName: printCoordinates
-      Parameters:
-        VarRefNode
-          VarName: init_position
+              VarName: init_position

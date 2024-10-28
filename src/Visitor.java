@@ -6,19 +6,22 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitProgram(ImpGrammarParser.ProgramContext ctx) {
         List<ASTNode> declarations = new ArrayList<>();
+        
+        // Collect variable declarations
         for (ImpGrammarParser.SimpleDeclarationContext varDecl : ctx.simpleDeclaration()) {
             declarations.add(visit(varDecl));
         }
-    
+        
         // Collect routine declarations
         for (ImpGrammarParser.RoutineDeclarationContext routineDecl : ctx.routineDeclaration()) {
             declarations.add(visit(routineDecl));
         }
-    
+        
         // Collect statements
         for (ImpGrammarParser.StatementContext stmt : ctx.statement()) {
             declarations.add(visit(stmt));
         }
+        
         return new ProgramNode(declarations);
     }
 
@@ -62,31 +65,34 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     public ASTNode visitRoutineDeclaration(ImpGrammarParser.RoutineDeclarationContext ctx) {
         String routineName = ctx.TK_VARNAME().getText();
         List<ASTNode> parameters = new ArrayList<>();
+        
         if (ctx.parameters() != null) {
             for (ImpGrammarParser.ParameterDeclarationContext paramDecl : ctx.parameters().parameterDeclaration()) {
                 parameters.add(visit(paramDecl));
             }
         }
+        
         ASTNode returnType = ctx.type() != null ? visit(ctx.type()) : null;
         List<ASTNode> body = new ArrayList<>();
+        
         for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
             body.add(visit(decl));
         }
+        
         for (ImpGrammarParser.StatementContext stmt : ctx.body().statement()) {
             body.add(visit(stmt));
         }
+        
         return new RoutineDeclNode(routineName, parameters, returnType, body);
     }
 
     @Override
     public ASTNode visitRoutineCall(ImpGrammarParser.RoutineCallContext ctx) {
         String routineName = ctx.TK_VARNAME().getText();
-
         List<ASTNode> arguments = new ArrayList<>();
         
         for (ImpGrammarParser.ExpressionContext exprCtx : ctx.expression()) {
-            ASTNode argument = visit(exprCtx);
-            arguments.add(argument);
+            arguments.add(visit(exprCtx));
         }
 
         return new RoutineCallNode(routineName, arguments);
@@ -103,12 +109,15 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     public ASTNode visitIfStatement(ImpGrammarParser.IfStatementContext ctx) {
         ASTNode condition = visit(ctx.expression());
         List<ASTNode> thenBody = new ArrayList<>();
+        
         for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body(0).simpleDeclaration()) {
             thenBody.add(visit(decl));
         }
+        
         for (ImpGrammarParser.StatementContext stmt : ctx.body(0).statement()) {
             thenBody.add(visit(stmt));
         }
+        
         List<ASTNode> elseBody = new ArrayList<>();
         if (ctx.body(1) != null) {
             for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body(1).simpleDeclaration()) {
@@ -118,6 +127,7 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
                 elseBody.add(visit(stmt));
             }
         }
+        
         return new IfNode(condition, thenBody, elseBody);
     }
 
@@ -125,12 +135,15 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     public ASTNode visitWhileLoop(ImpGrammarParser.WhileLoopContext ctx) {
         ASTNode condition = visit(ctx.expression());
         List<ASTNode> body = new ArrayList<>();
+        
         for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
             body.add(visit(decl));
         }
+        
         for (ImpGrammarParser.StatementContext stmt : ctx.body().statement()) {
             body.add(visit(stmt));
         }
+        
         return new WhileLoopNode(condition, body);
     }
 
@@ -139,12 +152,15 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         String iterator = ctx.TK_VARNAME().getText();
         ASTNode range = visit(ctx.range());
         List<ASTNode> body = new ArrayList<>();
+        
         for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
             body.add(visit(decl));
         }
+        
         for (ImpGrammarParser.StatementContext stmt : ctx.body().statement()) {
             body.add(visit(stmt));
         }
+        
         return new ForLoopNode(iterator, range, body);
     }
 
@@ -167,21 +183,17 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitExpression(ImpGrammarParser.ExpressionContext ctx) {
-        
         List<ASTNode> relations = new ArrayList<>();
         List<String> operators = new ArrayList<>();
 
-        
         for (int i = 0; i < ctx.relation().size(); i++) {
             relations.add(visit(ctx.relation(i)));
         }
 
-        
         for (int i = 1; i < ctx.getChildCount(); i += 2) {
             operators.add(ctx.getChild(i).getText());
         }
 
-        
         if (relations.size() == 1) {
             return relations.get(0);
         }
@@ -196,7 +208,6 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         return expressionNode;
     }
 
-
     @Override
     public ASTNode visitRelation(ImpGrammarParser.RelationContext ctx) {
         ASTNode left = visit(ctx.simple(0));
@@ -208,15 +219,6 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         return left;
     }
 
-    @Override
-    public ASTNode visitPrimary(ImpGrammarParser.PrimaryContext ctx) {
-        if (ctx.IntegerLiteral() != null) {
-            return new IntLiteralNode(Integer.parseInt(ctx.IntegerLiteral().getText()));
-        } else if (ctx.RealLiteral() != null) {
-            return new RealLiteralNode(Float.parseFloat(ctx.RealLiteral().getText()));
-        }
-        return visitChildren(ctx);
-    }
 
     @Override
     public ASTNode visitModifiablePrimary(ImpGrammarParser.ModifiablePrimaryContext ctx) {
@@ -224,15 +226,12 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         return new VarRefNode(varName);
     }
 
-    
     @Override
     public ASTNode visitParameters(ImpGrammarParser.ParametersContext ctx) {
         List<ASTNode> parameterNodes = new ArrayList<>();
         
-        parameterNodes.add(visit(ctx.parameterDeclaration(0)));
-
-        for (int i = 1; i < ctx.parameterDeclaration().size(); i++) {
-            parameterNodes.add(visit(ctx.parameterDeclaration(i)));
+        for (ImpGrammarParser.ParameterDeclarationContext paramDecl : ctx.parameterDeclaration()) {
+            parameterNodes.add(visit(paramDecl));
         }
 
         return new ParametersNode(parameterNodes); 
@@ -241,63 +240,30 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitParameterDeclaration(ImpGrammarParser.ParameterDeclarationContext ctx) {
         String varName = ctx.TK_VARNAME().getText();
-
         ASTNode typeNode = visit(ctx.type());
-
         return new ParameterDeclNode(varName, typeNode);
     }
 
-    public ASTNode visitBodyNode(ImpGrammarParser.BodyContext ctx) {
-        BodyNode bodyNode = new BodyNode();
-    
-        for (ImpGrammarParser.StatementContext stmtCtx : ctx.statement()) {
-            StatementNode stmtNode = (StatementNode) visit(stmtCtx);
-            bodyNode.statements.add(stmtNode);
-        }
-    
-        return bodyNode;
-    }
-    
-
-    public ASTNode visitStatement(ImpGrammarParser.StatementContext ctx) {
-        if (ctx.assignment() != null) {
-            return visit(ctx.assignment());
-        } else if (ctx.routineCall() != null) {
-            return visit(ctx.routineCall());
-        } else if (ctx.whileLoop() != null) {
-            return visit(ctx.whileLoop());
-        } else if (ctx.forLoop() != null) {
-            return visit(ctx.forLoop());
-        } else if (ctx.ifStatement() != null) {
-            return visit(ctx.ifStatement());
-        } else if (ctx.printStatement() != null) {
-            return visit(ctx.printStatement());
-        } else if (ctx.breakStatement() != null) {
-            return visit(ctx.breakStatement());
-        } else if (ctx.returnStatement() != null) {
-            return visit(ctx.returnStatement());
-        }
-        return null;
-    }
-
     @Override
-    public ASTNode visitRange(ImpGrammarParser.RangeContext ctx) {
-        ASTNode lowerBound = visit(ctx.expression(0)); 
-        ASTNode upperBound = visit(ctx.expression(1)); 
-        return new RangeNode(lowerBound, upperBound);
-    }
-
-    @Override
-    public ASTNode visitFieldAssignment(ImpGrammarParser.FieldAssignmentContext ctx) {
-        // Get the variable name from the context
-        String variableName = ctx.TK_VARNAME().getText();
+    public ASTNode visitRecordInit(ImpGrammarParser.RecordInitContext ctx) {
+        // Extract the variable name (the name of the variable being initialized as a record)
+        String variableName = ctx.TK_VARNAME(0).getText();
         
-        // Visit the expression and get the corresponding ASTNode
-        ASTNode expression = (ASTNode) visit(ctx.expression());
-        // Create and return a new FieldAssignmentNode
-        return new FieldAssignmentNode(variableName, expression);
-    }
+        // Extract the record type name
+        String typeName = ctx.TK_VARNAME(1).getText();
+        UserDefinedTypeNode recordType = new UserDefinedTypeNode(typeName);
+        
+        // Collect the field assignments for the record initialization
+        List<FieldAssignmentNode> fieldAssignments = new ArrayList<>();
+        for (ImpGrammarParser.FieldAssignmentContext fieldCtx : ctx.fieldAssignment()) {
+            String fieldName = fieldCtx.TK_VARNAME().getText();
+            ASTNode fieldValue = visit(fieldCtx.expression()); // Visit to get the expression value
+            fieldAssignments.add(new FieldAssignmentNode(fieldName, fieldValue));
+        }
 
+        // Create and return a new RecordInitNode with the parsed details
+        return new RecordInitNode(variableName, recordType, fieldAssignments);
+    }
 
 }
 

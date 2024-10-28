@@ -4,19 +4,25 @@ TK_VARNAME : [a-zA-Z_][a-zA-Z0-9_.]*;
 
 // Parser rules
 program
-    : (simpleDeclaration | routineDeclaration | statement)* EOF
+    : (simpleDeclaration | routineDeclaration | statement | recordInit)* EOF
     ;
 
 // Simple Declarations
 simpleDeclaration
     : variableDeclaration
     | typeDeclaration
+    | recordInit
     ;
 
 // Variable Declaration
 variableDeclaration
-    : 'var' TK_VARNAME ':' type ('is' expression)?   // with type and optional expression
-    | 'var' TK_VARNAME 'is' expression               // inferred type from expression
+    : 'var' TK_VARNAME ':' type ('is' expression)? // regular variable declaration
+    | 'var' TK_VARNAME 'is' expression            // alternative initialization
+    ;
+
+// Record Initialization
+recordInit
+    : 'record' TK_VARNAME ':' TK_VARNAME 'is' '(' fieldAssignment (',' fieldAssignment)* ')'  // record initialization with fields
     ;
 
 // Type Declaration
@@ -29,7 +35,7 @@ type
     : primitiveType
     | arrayType
     | recordType
-    | TK_VARNAME 
+    | TK_VARNAME  // user-defined or other types
     ;
 
 // Primitive Types
@@ -47,8 +53,8 @@ recordType
 
 // Array Type
 arrayType
-    : 'array' '[' expression ']' type     // with explicit size
-    | 'array' '[]' type                   // sizeless for parameters
+    : 'array' '[' expression ']' type   
+    | 'array' '[]' type                   
     ;
 
 // Routine Declaration (subprograms)
@@ -67,7 +73,7 @@ parameterDeclaration
 
 // The body can contain declarations and statements
 body
-    : (simpleDeclaration | statement)*
+    : (simpleDeclaration | statement | recordInit)*
     ;
 
 // Statements
@@ -77,9 +83,9 @@ statement
     | whileLoop
     | forLoop
     | ifStatement
-    | printStatement // Added print statement
-    | breakStatement  // Added break statement
-    | returnStatement // Added return statement
+    | printStatement    
+    | breakStatement    
+    | returnStatement  
     ;
 
 // Assignment Statement
@@ -156,7 +162,7 @@ primary
     | CharLiteral
     | modifiablePrimary
     | routineCall
-    | '(' fieldAssignment (',' fieldAssignment)* ')'
+    | '(' fieldAssignment (',' fieldAssignment)* ')' // for record field assignments
     | 'not' primary
     ;
 
@@ -173,7 +179,6 @@ fieldAssignment
 IntegerLiteral : [0-9]+;
 RealLiteral    : [0-9]+ '.' [0-9]+;
 CharLiteral    : '\'' [a-zA-Z] '\'';
-
 
 // Ignore whitespace
 WS : [ \t]+ -> skip;

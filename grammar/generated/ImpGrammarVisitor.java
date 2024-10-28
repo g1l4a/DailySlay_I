@@ -28,6 +28,12 @@ public interface ImpGrammarVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVariableDeclaration(ImpGrammarParser.VariableDeclarationContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link ImpGrammarParser#recordInit}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRecordInit(ImpGrammarParser.RecordInitContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link ImpGrammarParser#typeDeclaration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

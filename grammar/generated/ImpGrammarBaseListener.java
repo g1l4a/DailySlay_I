@@ -52,6 +52,18 @@ public class ImpGrammarBaseListener implements ImpGrammarListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterRecordInit(ImpGrammarParser.RecordInitContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRecordInit(ImpGrammarParser.RecordInitContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTypeDeclaration(ImpGrammarParser.TypeDeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
