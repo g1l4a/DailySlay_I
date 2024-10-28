@@ -197,21 +197,6 @@ class BinaryExpressionNode extends ExpressionNode {
     }
 }
 
-class BinaryOpNode extends ASTNode {
-    public String operator;
-    public ASTNode left;    
-    public ASTNode right;   
-
-    public BinaryOpNode(String operator, ASTNode left, ASTNode right)
-    {
-        this.left = left;
-        this.operator = operator;
-        this.right = right;
-    }
-
-}
-
-
 class IntLiteralNode extends ASTNode {
     int value;
 
@@ -221,10 +206,10 @@ class IntLiteralNode extends ASTNode {
 }
 
 class RealLiteralNode extends ASTNode {
-    float value;
+    double value;
 
-    RealLiteralNode(float value) {
-        this.value = value;
+    RealLiteralNode(double value2) {
+        this.value = value2;
     }
 }
 
@@ -251,6 +236,19 @@ class ArrayAccessNode extends ASTNode {
     ArrayAccessNode(ASTNode array, ASTNode index) {
         this.array = array;
         this.index = index;
+    }
+}
+
+class BinaryOpNode extends ASTNode {
+    public String operator;
+    public ASTNode left;    
+    public ASTNode right;   
+
+    public BinaryOpNode(String operator, ASTNode left, ASTNode right)
+    {
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
     }
 }
 

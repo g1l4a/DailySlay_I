@@ -1,50 +1,53 @@
 ProgramNode
-  Declarations:
-    TypeDeclNode
-      TypeName: Vector
-      Type:
-        RecordTypeNode
-          Fields:
-            VarDeclNode
-              VarName: x
-              VarType:
-                PrimitiveTypeNode
-                  Type: real
-            VarDeclNode
-              VarName: y
-              VarType:
-                PrimitiveTypeNode
-                  Type: real
-    RoutineDeclNode
-      RoutineName: printCoordinates
-      Parameters:
-        ParameterDeclNode
-          VarName: vector
-          Type:
-      ReturnType: void
-      Body:
-        PrintNode
-          Expression:
-            VarRefNode
-              VarName: vector.x
-        PrintNode
-          Expression:
-            VarRefNode
-              VarName: vector.y
-    RoutineDeclNode
-      RoutineName: mainVector
-      No Parameters:
-      ReturnType: void
-      Body:
-        RecordInitNode
-        RecordInit:
-          Variable Name: init_position
-          Type: Vector
-          Field Assignments:
-            Field: x
-            Field: y
-        RoutineCallNode
-          RoutineName: printCoordinates
-          Parameters:
-            VarRefNode
-              VarName: init_position
+  TypeDeclNode
+  typeName: Vector
+  type:
+    RecordTypeNode
+      VarDeclNode
+      varName: x
+      varType:
+        PrimitiveTypeNode
+        type: real
+      expression:
+      VarDeclNode
+      varName: y
+      varType:
+        PrimitiveTypeNode
+        type: real
+      expression:
+  RoutineDeclNode
+  routineName: printCoordinates
+  parameters:
+    ParameterDeclNode
+  returnType:
+    UserDefinedTypeNode
+  body:
+    PrintNode
+    expression:
+      VarRefNode
+      varName: vector.x
+    PrintNode
+    expression:
+      VarRefNode
+      varName: vector.y
+  RoutineDeclNode
+  routineName: mainVector
+  parameters:
+  returnType:
+    UserDefinedTypeNode
+  body:
+    RecordInitNode
+    variableName: init_position
+    type: Vector
+      varName: x
+      expression:
+        RealLiteralNode
+        value: 1.0
+      varName: y
+      expression:
+        RealLiteralNode
+        value: 2.0
+    RoutineCallNode
+    routineName: printCoordinates
+      VarRefNode
+      varName: init_position

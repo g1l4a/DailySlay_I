@@ -34,11 +34,11 @@ public class ASTPrinter {
         } else if (node instanceof PrintNode) {
             printPrintNode((PrintNode) node, indent);
         } else if (node instanceof BreakNode) {
-            System.out.println(indent + "  BreakStatement");
+            printBreakNode((BreakNode) node, indent);
         } else if (node instanceof ReturnNode) {
             printReturnNode((ReturnNode) node, indent);
-        } else if (node instanceof BinaryOpNode) {
-            printBinaryOpNode((BinaryOpNode) node, indent);
+        } else if (node instanceof BinaryExpressionNode) {
+            printBinaryExpressionNode((BinaryExpressionNode) node, indent);
         } else if (node instanceof IntLiteralNode) {
             printIntLiteralNode((IntLiteralNode) node, indent);
         } else if (node instanceof RealLiteralNode) {
@@ -51,10 +51,10 @@ public class ASTPrinter {
             printArrayAccessNode((ArrayAccessNode) node, indent);
         } else if (node instanceof FieldAccessNode) {
             printFieldAccessNode((FieldAccessNode) node, indent);
+        } else if (node instanceof RangeNode) {
+            printRangeNode((RangeNode) node, indent);
         } else if (node instanceof ParametersNode) {
             printParametersNode((ParametersNode) node, indent);
-        } else if (node instanceof ParameterDeclNode) {
-            printParameterDeclNode((ParameterDeclNode) node, indent);
         } else if (node instanceof BodyNode) {
             printBodyNode((BodyNode) node, indent);
         } else if (node instanceof FieldAssignmentNode) {
@@ -65,217 +65,186 @@ public class ASTPrinter {
     }
 
     private void printProgramNode(ProgramNode node, String indent) {
-        System.out.println(indent + "  Declarations: ");
-        for (ASTNode decl : node.declarations) {
-            printAST(decl, indent + "    ");
+        for (ASTNode declaration : node.declarations) {
+            printAST(declaration, indent + "  ");
         }
     }
 
     private void printVarDeclNode(VarDeclNode node, String indent) {
-        System.out.println(indent + "  VarName: " + node.varName);
-        if (node.varType != null) {
-            System.out.println(indent + "  VarType: ");
-            printAST(node.varType, indent + "    ");
-        }
-        if (node.expression != null) {
-            System.out.println(indent + "  Expression: ");
-            printAST(node.expression, indent + "    ");
-        }
+        System.out.println(indent + "varName: " + node.varName);
+        System.out.println(indent + "varType:");
+        printAST(node.varType, indent + "  ");
+        System.out.println(indent + "expression:");
+        printAST(node.expression, indent + "  ");
     }
 
     private void printTypeDeclNode(TypeDeclNode node, String indent) {
-        System.out.println(indent + "  TypeName: " + node.typeName);
-        System.out.println(indent + "  Type: ");
-        printAST(node.type, indent + "    ");
+        System.out.println(indent + "typeName: " + node.typeName);
+        System.out.println(indent + "type:");
+        printAST(node.type, indent + "  ");
     }
 
     private void printPrimitiveTypeNode(PrimitiveTypeNode node, String indent) {
-        System.out.println(indent + "  Type: " + node.type);
+        System.out.println(indent + "type: " + node.type);
     }
 
     private void printArrayTypeNode(ArrayTypeNode node, String indent) {
-        System.out.println(indent + "  SizeExpression: ");
-        printAST(node.sizeExpression, indent + "    ");
-        System.out.println(indent + "  ElementType: ");
-        printAST(node.elementType, indent + "    ");
+        System.out.println(indent + "sizeExpression:");
+        printAST(node.sizeExpression, indent + "  ");
+        System.out.println(indent + "elementType:");
+        printAST(node.elementType, indent + "  ");
     }
 
     private void printRecordTypeNode(RecordTypeNode node, String indent) {
-        System.out.println(indent + "  Fields: ");
         for (ASTNode field : node.fields) {
-            printAST(field, indent + "    ");
+            printAST(field, indent + "  ");
         }
     }
 
     private void printRoutineDeclNode(RoutineDeclNode node, String indent) {
-        System.out.println(indent + "  RoutineName: " + node.routineName);
-        if (node.parameters.isEmpty()) {
-            System.out.println(indent + "  No Parameters: ");
-        } else {
-            System.out.println(indent + "  Parameters: ");
-            for (ASTNode param : node.parameters) {
-                printAST(param, indent + "    ");
-            }
+        System.out.println(indent + "routineName: " + node.routineName);
+        System.out.println(indent + "parameters:");
+        for (ASTNode param : node.parameters) {
+            printAST(param, indent + "  ");
         }
-        if (node.returnType != null) {
-            System.out.println(indent + "  ReturnType: ");
-            printAST(node.returnType, indent + "    ");
-        } else {
-            System.out.println(indent + "  ReturnType: void");
-        }
-        System.out.println(indent + "  Body: ");
-        for (ASTNode bodyElement : node.body) {
-            printAST(bodyElement, indent + "    ");
+        System.out.println(indent + "returnType:");
+        printAST(node.returnType, indent + "  ");
+        System.out.println(indent + "body:");
+        for (ASTNode statement : node.body) {
+            printAST(statement, indent + "  ");
         }
     }
 
     private void printRoutineCallNode(RoutineCallNode node, String indent) {
-        System.out.println(indent + "  RoutineName: " + node.routineName);
-        System.out.println(indent + "  Parameters: ");
+        System.out.println(indent + "routineName: " + node.routineName);
         for (ASTNode param : node.parameters) {
-            printAST(param, indent + "    ");
+            printAST(param, indent + "  ");
         }
     }
 
     private void printAssignmentNode(AssignmentNode node, String indent) {
-        System.out.println(indent + "  Left: ");
-        printAST(node.left, indent + "    ");
-        System.out.println(indent + "  Right: ");
-        if (node.right instanceof BinaryOpNode) {
-            BinaryOpNode binaryOp = (BinaryOpNode) node.right;
-            System.out.println(indent + "  Binary Operation: ");
-            System.out.println(indent + "    Operator: " + binaryOp.operator);
-            System.out.println(indent + "    Left Operand: ");
-            printAST(binaryOp.left, indent + "      ");
-            System.out.println(indent + "    Right Operand: ");
-            printAST(binaryOp.right, indent + "      ");
-        } else {
-            printAST(node.right, indent + "    ");
-        }
+        System.out.println(indent + "left:");
+        printAST(node.left, indent + "  ");
+        System.out.println(indent + "right:");
+        printAST(node.right, indent + "  ");
     }
 
     private void printIfNode(IfNode node, String indent) {
-        System.out.println(indent + "  Condition: ");
-        printAST(node.condition, indent + "    ");
-        System.out.println(indent + "  ThenBody: ");
-        for (ASTNode thenBodyElement : node.thenBody) {
-            printAST(thenBodyElement, indent + "    ");
+        System.out.println(indent + "condition:");
+        printAST(node.condition, indent + "  ");
+        System.out.println(indent + "thenBody:");
+        for (ASTNode statement : node.thenBody) {
+            printAST(statement, indent + "  ");
         }
-        System.out.println(indent + "  ElseBody: ");
-        for (ASTNode elseBodyElement : node.elseBody) {
-            printAST(elseBodyElement, indent + "    ");
+        System.out.println(indent + "elseBody:");
+        for (ASTNode statement : node.elseBody) {
+            printAST(statement, indent + "  ");
         }
     }
 
     private void printWhileLoopNode(WhileLoopNode node, String indent) {
-        System.out.println(indent + "  Condition: ");
-        printAST(node.condition, indent + "    ");
-        System.out.println(indent + "  Body: ");
-        for (ASTNode bodyElement : node.body) {
-            printAST(bodyElement, indent + "    ");
+        System.out.println(indent + "condition:");
+        printAST(node.condition, indent + "  ");
+        System.out.println(indent + "body:");
+        for (ASTNode statement : node.body) {
+            printAST(statement, indent + "  ");
         }
     }
 
     private void printForLoopNode(ForLoopNode node, String indent) {
-        System.out.println(indent + "  Iterator: " + node.iterator);
-        System.out.println(indent + "  Range: ");
-        printAST(node.range, indent + "    ");
-        System.out.println(indent + "  Body: ");
-        for (ASTNode bodyElement : node.body) {
-            printAST(bodyElement, indent + "    ");
+        System.out.println(indent + "iterator: " + node.iterator);
+        System.out.println(indent + "range:");
+        printAST(node.range, indent + "  ");
+        System.out.println(indent + "body:");
+        for (ASTNode statement : node.body) {
+            printAST(statement, indent + "  ");
         }
     }
 
     private void printPrintNode(PrintNode node, String indent) {
-        System.out.println(indent + "  Expression: ");
-        printAST(node.expression, indent + "    ");
+        System.out.println(indent + "expression:");
+        printAST(node.expression, indent + "  ");
+    }
+
+    private void printBreakNode(BreakNode node, String indent) {
+        System.out.println(indent + "Break");
     }
 
     private void printReturnNode(ReturnNode node, String indent) {
-        System.out.println(indent + "  ReturnStatement");
-        if (node.expression != null) {
-            System.out.println(indent + "  Expression: ");
-            printAST(node.expression, indent + "    ");
-        }
+        System.out.println(indent + "expression:");
+        printAST(node.expression, indent + "  ");
     }
 
-    private void printBinaryOpNode(BinaryOpNode node, String indent) {
-        System.out.println(indent + "  Operator: " + node.operator);
-        System.out.println(indent + "  Left: ");
-        printAST(node.left, indent + "    ");
-        System.out.println(indent + "  Right: ");
-        printAST(node.right, indent + "    ");
+    private void printBinaryExpressionNode(BinaryExpressionNode node, String indent) {
+        System.out.println(indent + "left:");
+        printAST(node.getLeft(), indent + "  ");
+        System.out.println(indent + "operator: " + node.getOperator());
+        System.out.println(indent + "right:");
+        printAST(node.getRight(), indent + "  ");
     }
 
     private void printIntLiteralNode(IntLiteralNode node, String indent) {
-        System.out.println(indent + "  IntValue: " + node.value);
+        System.out.println(indent + "value: " + node.value);
     }
 
     private void printRealLiteralNode(RealLiteralNode node, String indent) {
-        System.out.println(indent + "  RealValue: " + node.value);
+        System.out.println(indent + "value: " + node.value);
     }
 
     private void printBooleanLiteralNode(BooleanLiteralNode node, String indent) {
-        System.out.println(indent + "  BooleanValue: " + node.value);
+        System.out.println(indent + "value: " + node.value);
     }
 
     private void printVarRefNode(VarRefNode node, String indent) {
-        System.out.println(indent + "  VarName: " + node.varName);
+        System.out.println(indent + "varName: " + node.varName);
     }
 
     private void printArrayAccessNode(ArrayAccessNode node, String indent) {
-        System.out.println(indent + "  Array: ");
-        printAST(node.array, indent + "    ");
-        System.out.println(indent + "  Index: ");
-        printAST(node.index, indent + "    ");
+        System.out.println(indent + "array:");
+        printAST(node.array, indent + "  ");
+        System.out.println(indent + "index:");
+        printAST(node.index, indent + "  ");
     }
 
     private void printFieldAccessNode(FieldAccessNode node, String indent) {
-        System.out.println(indent + "  Record: ");
-        printAST(node.record, indent + "    ");
-        System.out.println(indent + "  Field: " + node.field);
+        System.out.println(indent + "record:");
+        printAST(node.record, indent + "  ");
+        System.out.println(indent + "field: " + node.field);
+    }
+
+    private void printRangeNode(RangeNode node, String indent) {
+        System.out.println(indent + "lowerBound:");
+        printAST(node.lowerBound, indent + "  ");
+        System.out.println(indent + "upperBound:");
+        printAST(node.upperBound, indent + "  ");
     }
 
     private void printParametersNode(ParametersNode node, String indent) {
-        System.out.println(indent + "  Parameters: ");
         for (ASTNode param : node.parameters) {
-            printAST(param, indent + "    ");
+            printAST(param, indent + "  ");
         }
-    }
-
-    private void printParameterDeclNode(ParameterDeclNode node, String indent) {
-        System.out.println(indent + "  VarName: " + node.varName);
-        System.out.println(indent + "  Type: ");
-        printAST(node.type, indent + "    ");
     }
 
     private void printBodyNode(BodyNode node, String indent) {
-        System.out.println(indent + "  SimpleDeclarations: ");
         for (SimpleDeclarationNode decl : node.simpleDeclarations) {
-            printAST(decl, indent + "    ");
+            printAST(decl, indent + "  ");
         }
-        System.out.println(indent + "  Statements: ");
-        for (StatementNode stmt : node.statements) {
-            printAST(stmt, indent + "    ");
+        for (StatementNode statement : node.statements) {
+            printAST(statement, indent + "  ");
         }
     }
 
     private void printFieldAssignmentNode(FieldAssignmentNode node, String indent) {
-        System.out.println(indent + "  Field: " + node.varName);
-        System.out.println(indent + "  Expression: ");
-        printAST(node.expression, indent + "    ");
+        System.out.println(indent + "varName: " + node.varName);
+        System.out.println(indent + "expression:");
+        printAST(node.expression, indent + "  ");
     }
 
     private void printRecordInitNode(RecordInitNode node, String indent) {
-        System.out.println(indent + "RecordInit:");
-        System.out.println(indent + "  Variable Name: " + node.variableName);
-        System.out.println(indent + "  Type: " + node.type.typeName);
-    
-        System.out.println(indent + "  Field Assignments:");
+        System.out.println(indent + "variableName: " + node.variableName);
+        System.out.println(indent + "type: " + node.type.typeName);
         for (FieldAssignmentNode fieldAssignment : node.fieldAssignments) {
-            System.out.println(indent + "    Field: " + fieldAssignment.varName);
-            printAST(fieldAssignment.expression, indent + "      ");
+            printFieldAssignmentNode(fieldAssignment, indent + "  ");
         }
     }
-    
 }

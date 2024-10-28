@@ -41,6 +41,34 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     }
 
     @Override
+    public ASTNode visitType(ImpGrammarParser.TypeContext ctx) {
+        // Check for primitive types
+        if (ctx.primitiveType() != null) {
+            return visit(ctx.primitiveType());
+        }
+
+        // Check for array types
+        if (ctx.arrayType() != null) {
+            return visit(ctx.arrayType());
+        }
+
+        // Check for record types
+        if (ctx.recordType() != null) {
+            return visit(ctx.recordType());
+        }
+
+        // Check for variable name
+        if (ctx.TK_VARNAME() != null) {
+            String varName = ctx.TK_VARNAME().getText();
+            return new UserDefinedTypeNode(varName); // Assuming you have a class to represent variable types
+        }
+
+        // If none of the cases matched, handle it accordingly (throw an error or return null)
+        throw new IllegalArgumentException("Invalid type found in context");
+    }
+
+
+    @Override
     public ASTNode visitPrimitiveType(ImpGrammarParser.PrimitiveTypeContext ctx) {
         return new PrimitiveTypeNode(ctx.getText());
     }
@@ -183,17 +211,26 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitExpression(ImpGrammarParser.ExpressionContext ctx) {
+        // Print the number of relations and their contents
+        for (int i = 0; i < ctx.relation().size(); i++) {
+            // Visit each relation and print its textual representation
+            ASTNode relationNode = visit(ctx.relation(i));
+        }
+
         List<ASTNode> relations = new ArrayList<>();
         List<String> operators = new ArrayList<>();
 
+        // Iterate over relations and populate lists
         for (int i = 0; i < ctx.relation().size(); i++) {
             relations.add(visit(ctx.relation(i)));
         }
 
+        // Collect operators (assuming they are at odd indices)
         for (int i = 1; i < ctx.getChildCount(); i += 2) {
             operators.add(ctx.getChild(i).getText());
         }
 
+        // Handle the binary expression creation
         if (relations.size() == 1) {
             return relations.get(0);
         }
@@ -218,6 +255,92 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         }
         return left;
     }
+
+    @Override
+    public ASTNode visitPrimary(ImpGrammarParser.PrimaryContext ctx) {
+        if (ctx.IntegerLiteral() != null) {
+            // Handle IntegerLiteral
+            int value = Integer.parseInt(ctx.IntegerLiteral().getText());
+            return new IntLiteralNode(value);
+        } else if (ctx.RealLiteral() != null) {
+            // Handle RealLiteral
+            double value = Double.parseDouble(ctx.RealLiteral().getText());
+            return new RealLiteralNode(value);
+        } else if (ctx.getText().equals("true")) {
+            // Handle boolean literal true
+            return new BooleanLiteralNode(true);
+        } else if (ctx.getText().equals("false")) {
+            // Handle boolean literal false
+            return new BooleanLiteralNode(false);
+        } else if (ctx.modifiablePrimary() != null) {
+            // Handle modifiablePrimary (like variables)
+            return visit(ctx.modifiablePrimary());
+        } else if (ctx.routineCall() != null) {
+            // Handle routineCall
+            return visit(ctx.routineCall());
+        } else if (ctx.fieldAssignment() != null && ctx.fieldAssignment().size() == 1) {
+            // Handle field assignment in parentheses, ensuring it's a single assignment
+            return visitFieldAssignment(ctx.fieldAssignment(0)); // Ensure you handle only the first context
+        } 
+    
+        // If no valid primary found, consider throwing an error or handling accordingly
+        throw new IllegalArgumentException("Invalid primary found in context: " + ctx.getText());
+    }
+    
+    @Override
+    public ASTNode visitSummand(ImpGrammarParser.SummandContext ctx) {
+        // Check if the summand is a primary or a type
+        if (ctx.primary() != null) {
+            // Handle the primary case
+            return visit(ctx.primary());
+        } else if (ctx.type() != null) {
+            // Handle the type case (if relevant to your AST)
+            return visit(ctx.type());
+        } else if (ctx.expression() != null) {
+            // Handle the expression case in parentheses
+            // Assuming you have a suitable class for expression nodes
+            return visit(ctx.expression());
+        }
+
+        // If none of the above cases match, return null or handle as needed
+        return null;
+    }
+
+    @Override
+    public ASTNode visitFactor(ImpGrammarParser.FactorContext ctx) {
+        // Create a list to hold the summands and their corresponding operators
+        List<ASTNode> summands = new ArrayList<>();
+        List<String> operators = new ArrayList<>();
+
+        // Visit the first summand
+        summands.add(visit(ctx.summand(0)));
+
+        // Process subsequent summands and operators
+        for (int i = 1; i < ctx.summand().size(); i++) {
+            // Determine the operator
+            String operator = ctx.getChild(i * 2 - 1).getText(); // Assuming operators are at odd indices
+            operators.add(operator);
+
+            // Visit the summand
+            summands.add(visit(ctx.summand(i)));
+        }
+
+        // If there's only one summand, return it
+        if (summands.size() == 1) {
+            return summands.get(0);
+        }
+
+        // If there are multiple summands, create a new BinaryExpressionNode
+        ASTNode expressionNode = summands.get(0);
+        for (int i = 0; i < operators.size(); i++) {
+            String operator = operators.get(i);
+            ASTNode right = summands.get(i + 1);
+            expressionNode = new BinaryExpressionNode((ExpressionNode) expressionNode, operator, (ExpressionNode) right);
+        }
+
+        return expressionNode;
+    }
+
 
 
     @Override
