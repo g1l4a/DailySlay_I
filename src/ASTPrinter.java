@@ -54,11 +54,22 @@ public class ASTPrinter {
                 printAST(bodyElement, indent + "    ");
             }
         } else if (node instanceof AssignmentNode) {
-            AssignmentNode assignment = (AssignmentNode) node;
-            System.out.println(indent + "  Left: ");
-            printAST(assignment.left, indent + "    ");
-            System.out.println(indent + "  Right: ");
-            printAST(assignment.right, indent + "    ");
+                AssignmentNode assignment = (AssignmentNode) node;
+                System.out.println(indent + "  Left: ");
+                printAST(assignment.left, indent + "    ");
+                System.out.println(indent + "  Right: ");
+                if (assignment.right instanceof BinaryOpNode) {
+                    BinaryOpNode binaryOp = (BinaryOpNode) assignment.right;
+                    System.out.println(indent + "  Binary Operation: ");
+                    System.out.println(indent + "    Operator: " + binaryOp.operator);
+                    System.out.println(indent + "    Left Operand: ");
+                    printAST(binaryOp.left, indent + "      ");
+                    System.out.println(indent + "    Right Operand: ");
+                    printAST(binaryOp.right, indent + "      ");
+                } else {
+                    printAST(assignment.right, indent + "    ");
+                }
+        
         } else if (node instanceof IfNode) {
             IfNode ifNode = (IfNode) node;
             System.out.println(indent + "  Condition: ");
@@ -70,6 +81,38 @@ public class ASTPrinter {
             System.out.println(indent + "  ElseBody: ");
             for (ASTNode elseBodyElement : ifNode.elseBody) {
                 printAST(elseBodyElement, indent + "    ");
+            }
+        } else if (node instanceof WhileLoopNode) {
+            WhileLoopNode whileLoop = (WhileLoopNode) node;
+            System.out.println(indent + "  Condition: ");
+            printAST(whileLoop.condition, indent + "    ");
+            System.out.println(indent + "  Body: ");
+            for (ASTNode bodyElement : whileLoop.body) {
+                printAST(bodyElement, indent + "    ");
+            }
+        } else if (node instanceof ForLoopNode) {
+            ForLoopNode forLoop = (ForLoopNode) node;
+            System.out.println(indent + "  Iterator: " + forLoop.iterator);
+            System.out.println(indent + "  Range: ");
+            printAST(forLoop.range, indent + "    ");
+            System.out.println(indent + "  Body: ");
+            for (ASTNode bodyElement : forLoop.body) {
+                printAST(bodyElement, indent + "    ");
+            }
+        } else if (node instanceof PrintNode) {
+            PrintNode printNode = (PrintNode) node;
+            System.out.println(indent + "  Expression: ");
+            printAST(printNode.expression, indent + "    ");
+
+        } else if (node instanceof BreakNode) {
+            System.out.println(indent + "  BreakStatement");
+
+        } else if (node instanceof ReturnNode) {
+            ReturnNode returnNode = (ReturnNode) node;
+            System.out.println(indent + "  ReturnStatement");
+            if (returnNode.expression != null) {
+                System.out.println(indent + "  Expression: ");
+                printAST(returnNode.expression, indent + "    ");
             }
         } else if (node instanceof BinaryOpNode) {
             BinaryOpNode binaryOp = (BinaryOpNode) node;

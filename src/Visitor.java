@@ -1,7 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
 
-
 public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
     @Override
@@ -10,9 +9,18 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
         for (ImpGrammarParser.SimpleDeclarationContext varDecl : ctx.simpleDeclaration()) {
             declarations.add(visit(varDecl));
         }
+    
+        // Collect routine declarations
+        for (ImpGrammarParser.RoutineDeclarationContext routineDecl : ctx.routineDeclaration()) {
+            declarations.add(visit(routineDecl));
+        }
+    
+        // Collect statements
+        for (ImpGrammarParser.StatementContext stmt : ctx.statement()) {
+            declarations.add(visit(stmt));
+        }
         return new ProgramNode(declarations);
     }
-
 
     @Override
     public ASTNode visitVariableDeclaration(ImpGrammarParser.VariableDeclarationContext ctx) {
@@ -97,6 +105,50 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
             }
         }
         return new IfNode(condition, thenBody, elseBody);
+    }
+
+    @Override
+    public ASTNode visitWhileLoop(ImpGrammarParser.WhileLoopContext ctx) {
+        ASTNode condition = visit(ctx.expression());
+        List<ASTNode> body = new ArrayList<>();
+        for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
+            body.add(visit(decl));
+        }
+        for (ImpGrammarParser.StatementContext stmt : ctx.body().statement()) {
+            body.add(visit(stmt));
+        }
+        return new WhileLoopNode(condition, body);
+    }
+
+    @Override
+    public ASTNode visitForLoop(ImpGrammarParser.ForLoopContext ctx) {
+        String iterator = ctx.TK_VARNAME().getText();
+        ASTNode range = visit(ctx.range());
+        List<ASTNode> body = new ArrayList<>();
+        for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
+            body.add(visit(decl));
+        }
+        for (ImpGrammarParser.StatementContext stmt : ctx.body().statement()) {
+            body.add(visit(stmt));
+        }
+        return new ForLoopNode(iterator, range, body);
+    }
+
+    @Override
+    public ASTNode visitPrintStatement(ImpGrammarParser.PrintStatementContext ctx) {
+        ASTNode expression = visit(ctx.expression());
+        return new PrintNode(expression);
+    }
+
+    @Override
+    public ASTNode visitBreakStatement(ImpGrammarParser.BreakStatementContext ctx) {
+        return new BreakNode();
+    }
+
+    @Override
+    public ASTNode visitReturnStatement(ImpGrammarParser.ReturnStatementContext ctx) {
+        ASTNode expression = ctx.expression() != null ? visit(ctx.expression()) : null;
+        return new ReturnNode(expression);
     }
 
     @Override

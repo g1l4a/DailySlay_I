@@ -1,0 +1,41 @@
+ProgramNode
+  Declarations: 
+    TypeDeclNode
+      TypeName: Vector
+      Type: 
+        RecordTypeNode
+          Fields: 
+            VarDeclNode
+              VarName: x
+              VarType: 
+                PrimitiveTypeNode
+                  Type: real
+              Expression:
+            VarDeclNode
+              VarName: y
+              VarType:
+                PrimitiveTypeNode
+                  Type: real
+              Expression:
+    RoutineDeclNode
+      RoutineName: printCoordinates
+      Parameters:
+      ReturnType:
+      Body:
+        PrintNode
+          Expression:
+            VarRefNode
+              VarName: vector.x
+        PrintNode
+          Expression:
+            VarRefNode
+              VarName: vector.y
+    RoutineDeclNode
+      RoutineName: mainVector
+      Parameters:
+      ReturnType:
+      Body:
+        VarDeclNode
+          VarName: init_position
+          VarType:
+          Expression:

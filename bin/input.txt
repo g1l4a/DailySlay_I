@@ -1,33 +1,14 @@
-var a: integer is 42
-var b: real
-var c: real is 3.14
-
-type PersonAge is integer
-
-var age: PersonAge is 30
-
 type Vector is record {
     var x: real
     var y: real
 } end
 
-var position: Vector is (x: 1.0, y: 2.0)
-
-var numbers: array[10] integer
-
-routine calculateDistance(p1: Vector, p2: Vector) : real is
-    var dx: real is (p2.x - p1.x)
-    var dy: real is (p2.y - p1.y)
-    return (dx * dx + dy * dy)
+routine printCoordinates(vector: Vector) : void is
+    print(vector.x)
+    print(vector.y)
 end
 
-if age > 18 then
-    print(age)
-else
-    print(18)
-end
-
-while age > 0 loop
-    print(age)
-    age := age - 1
+routine mainVector() : void is
+    var init_position: Vector is (x: 1.0, y: 2.0)
+    printCoordinates(init_position)
 end

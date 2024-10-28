@@ -1,6 +1,7 @@
 grammar ImpGrammar;
 
-TK_VARNAME     : [a-zA-Z_][a-zA-Z_0-9]*;
+TK_VARNAME : [a-zA-Z_][a-zA-Z0-9_.]*;
+
 // Parser rules
 program
     : (simpleDeclaration | routineDeclaration | statement)* EOF

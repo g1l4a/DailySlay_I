@@ -158,3 +158,43 @@ class FieldAccessNode extends ASTNode {
         this.field = field;
     }
 }
+
+class WhileLoopNode extends ASTNode {
+    ASTNode condition;
+    List<ASTNode> body;
+
+    WhileLoopNode(ASTNode condition, List<ASTNode> body) {
+        this.condition = condition;
+        this.body = body;
+    }
+}
+
+class ForLoopNode extends ASTNode {
+    String iterator;
+    ASTNode range;
+    List<ASTNode> body;
+
+    ForLoopNode(String iterator, ASTNode range, List<ASTNode> body) {
+        this.iterator = iterator;
+        this.range = range;
+        this.body = body;
+    }
+}
+
+class PrintNode extends ASTNode {
+    ASTNode expression;
+
+    PrintNode(ASTNode expression) {
+        this.expression = expression;
+    }
+}
+
+class BreakNode extends ASTNode {}
+
+class ReturnNode extends ASTNode {
+    ASTNode expression;
+
+    ReturnNode(ASTNode expression) {
+        this.expression = expression;
+    }
+}
