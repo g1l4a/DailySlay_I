@@ -20,5 +20,14 @@ public class Main {
         
         ASTPrinter printer = new ASTPrinter();
         printer.printAST(astRoot, ""); 
+
+        System.out.println();
+
+        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+        semanticAnalyzer.analyze(astRoot);
+        System.out.println("Semantic analysis completed successfully.");
+
+        ASTPrinter printer1 = new ASTPrinter();
+        printer1.printAST(astRoot, ""); 
     }
 }

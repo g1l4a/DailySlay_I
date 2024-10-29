@@ -2,7 +2,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 // Base class for all AST nodes
-abstract class ASTNode {}
+abstract class ASTNode {
+}
 
 // Program Node representing the entire program
 class ProgramNode extends ASTNode {
@@ -11,6 +12,7 @@ class ProgramNode extends ASTNode {
     ProgramNode(List<ASTNode> declarations) {
         this.declarations = declarations;
     }
+
 }
 
 // Declaration Nodes
@@ -168,10 +170,11 @@ class ReturnNode extends StatementNode {
 // Expression Nodes
 abstract class ExpressionNode extends ASTNode {}
 
-class BinaryExpressionNode extends ExpressionNode {
-    private final ExpressionNode left;
-    private final String operator;
-    private final ExpressionNode right;
+public class BinaryExpressionNode extends ExpressionNode {
+    private  ExpressionNode left;
+    private  String operator;
+    private  ExpressionNode right;
+    private BinaryExpressionNode parent; // Adding a reference to the parent node for replacement
 
     public BinaryExpressionNode(ExpressionNode left, String operator, ExpressionNode right) {
         this.left = left;
@@ -195,9 +198,45 @@ class BinaryExpressionNode extends ExpressionNode {
     public String toString() {
         return "(" + left.toString() + " " + operator + " " + right.toString() + ")";
     }
+
+    public void setLeft(ExpressionNode left) {
+        this.left = left;
+       
+        if (left instanceof BinaryExpressionNode) {
+            ((BinaryExpressionNode) left).setParent(this);
+        }
+    }
+
+    public void setRight(ExpressionNode right) {
+        this.right = right;
+        // Update the parent reference if the right node is a BinaryExpressionNode
+        if (right instanceof BinaryExpressionNode) {
+            ((BinaryExpressionNode) right).setParent(this);
+        }
+    }
+
+    public void replaceWith(ASTNode newNode) {
+        if (newNode == null) {
+            throw new IllegalArgumentException("Cannot replace with a null node.");
+        }
+
+        if (this.parent != null) {
+            if (this.parent.getLeft() == this) {
+                this.parent.setLeft((ExpressionNode) newNode); 
+            } else if (this.parent.getRight() == this) {
+                this.parent.setRight((ExpressionNode) newNode); 
+            }
+        }
+    }
+
+    // Setter for parent (if needed)
+    public void setParent(BinaryExpressionNode parent) {
+        this.parent = parent;
+    }
 }
 
-class IntLiteralNode extends ASTNode {
+
+class IntLiteralNode extends ExpressionNode {
     int value;
 
     IntLiteralNode(int value) {
@@ -205,7 +244,7 @@ class IntLiteralNode extends ASTNode {
     }
 }
 
-class RealLiteralNode extends ASTNode {
+class RealLiteralNode extends ExpressionNode {
     double value;
 
     RealLiteralNode(double value2) {
@@ -314,13 +353,13 @@ class FieldAssignmentNode extends ASTNode {
     }
 }
 
-// Record Initialization Node
-class RecordInitNode extends ASTNode {
-    String variableName;                 // The name of the variable being initialized
-    UserDefinedTypeNode type;            // The user-defined record type
-    List<FieldAssignmentNode> fieldAssignments; // List of field assignments for initializing the record
 
-    // Constructor to initialize the RecordInitNode with the variable name, type, and field assignments
+class RecordInitNode extends ASTNode {
+    String variableName;                 
+    UserDefinedTypeNode type;            
+    List<FieldAssignmentNode> fieldAssignments; 
+
+    
     RecordInitNode(String variableName, UserDefinedTypeNode type, List<FieldAssignmentNode> fieldAssignments) {
         this.variableName = variableName;
         this.type = type;

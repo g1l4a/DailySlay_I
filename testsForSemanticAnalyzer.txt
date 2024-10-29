@@ -1,0 +1,56 @@
+// 'foo' must be declared before use.
+routine main() is
+    foo(); 
+end
+
+routine foo() is
+    print(true);
+end
+
+// Cannot assign 'boolean' to 'integer'.
+routine main() is
+    var a: integer; 
+    a := true; 
+end
+
+routine main() is
+    var result: integer;
+    result := foo(1, 2); 
+end
+
+
+// Optimizations:
+
+routine main() is
+    var a: integer is (5 + 3)
+end
+
+routine main() is
+    var unused: integer
+    print(true)
+end
+
+routine foo(a: integer) is
+    print(true)
+    print(a)
+end
+
+routine main() is
+    var b: integer is 2
+    foo(b)
+end
+
+type Vector is record {
+    var x: real
+    var y: real
+} end
+
+routine printCoordinates(vector: Vector) : void is
+    print(vector.x)
+    print(vector.y)
+end
+
+routine mainVector() : void is
+    record init_position: Vector is (x: 1.0, y: 2.0)
+    printCoordinates(init_position)
+end

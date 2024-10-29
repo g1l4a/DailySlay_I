@@ -1,14 +1,3 @@
-type Vector is record {
-    var x: real
-    var y: real
-} end
-
-routine printCoordinates(vector: Vector) : void is
-    print(vector.x)
-    print(vector.y)
-end
-
-routine mainVector() : void is
-    record init_position: Vector is (x: 1.0, y: 2.0)
-    printCoordinates(init_position)
+routine foo(a: integer) is
+    var a: integer is 8 + 9
 end
