@@ -1,5 +1,5 @@
 routine foo(a : integer) is
-    a := a + 1
+    print(a)
 end
 
 foo(5)
