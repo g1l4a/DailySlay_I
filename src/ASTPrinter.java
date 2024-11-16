@@ -43,6 +43,8 @@ public class ASTPrinter {
             printIntLiteralNode((IntLiteralNode) node, indent);
         } else if (node instanceof RealLiteralNode) {
             printRealLiteralNode((RealLiteralNode) node, indent);
+        } else if (node instanceof CharLiteralNode) {
+            printCharLiteralNode((CharLiteralNode) node, indent);
         } else if (node instanceof BooleanLiteralNode) {
             printBooleanLiteralNode((BooleanLiteralNode) node, indent);
         } else if (node instanceof VarRefNode) {
@@ -61,7 +63,10 @@ public class ASTPrinter {
             printFieldAssignmentNode((FieldAssignmentNode) node, indent);
         } else if (node instanceof RecordInitNode) {
             printRecordInitNode((RecordInitNode) node, indent);
+        } else if (node instanceof ParameterDeclNode) {
+            printParameterDeclNode((ParameterDeclNode) node, indent);
         }
+
     }
 
     private void printProgramNode(ProgramNode node, String indent) {
@@ -191,6 +196,10 @@ public class ASTPrinter {
         System.out.println(indent + "value: " + node.value);
     }
 
+    private void printCharLiteralNode(CharLiteralNode node, String indent) {
+        System.out.println(indent + "value: " + node.value);
+    }
+
     private void printBooleanLiteralNode(BooleanLiteralNode node, String indent) {
         System.out.println(indent + "value: " + node.value);
     }
@@ -201,7 +210,7 @@ public class ASTPrinter {
 
     private void printArrayAccessNode(ArrayAccessNode node, String indent) {
         System.out.println(indent + "array:");
-        printAST(node.array, indent + "  ");
+        //printAST(node.array, indent + "  ");
         System.out.println(indent + "index:");
         printAST(node.index, indent + "  ");
     }
@@ -223,6 +232,13 @@ public class ASTPrinter {
         for (ASTNode param : node.parameters) {
             printAST(param, indent + "  ");
         }
+    }
+
+    private void printParameterDeclNode(ParameterDeclNode node, String indent) {
+        System.out.println("ParameterDeclarationNode");
+        System.out.println(indent + "varName: " + node.varName);
+        System.out.println(indent + "varType:");
+        printAST(node.type, indent + "  ");
     }
 
     private void printBodyNode(BodyNode node, String indent) {

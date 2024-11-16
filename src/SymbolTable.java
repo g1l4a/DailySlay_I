@@ -48,17 +48,17 @@ public class SymbolTable {
     }
 
     // Methods for handling routines
-    private final Map<String, RoutineInfo> routines = new HashMap<>();
+    private final Map<String, RoutineDeclNode> routines = new HashMap<>();
 
-    public void putRoutine(String name, ASTNode returnType, List<ASTNode> parameters) {
+    public void putRoutine(String name, RoutineDeclNode routine) {
         if (containsRoutine(name)) {
             throw new SemanticException("Routine '" + name + "' is already declared.");
         }
-        routines.put(name, new RoutineInfo(returnType, parameters));
+        routines.put(name, routine);
     }
 
-    public RoutineInfo getRoutine(String name) {
-        RoutineInfo routineInfo = routines.get(name);
+    public RoutineDeclNode getRoutine(String name) {
+        RoutineDeclNode routineInfo = routines.get(name);
         if (routineInfo == null) {
             throw new SemanticException("Routine '" + name + "' is not declared.");
         }
@@ -69,24 +69,6 @@ public class SymbolTable {
         return routines.containsKey(name);
     }
 
-    // Inner class to hold routine information
-    public static class RoutineInfo {
-        private final ASTNode returnType;
-        private final List<ASTNode> parameters;
-
-        public RoutineInfo(ASTNode returnType, List<ASTNode> parameters) {
-            this.returnType = returnType;
-            this.parameters = parameters;
-        }
-
-        public ASTNode getReturnType() {
-            return returnType;
-        }
-
-        public List<ASTNode> getParameters() {
-            return parameters;
-        }
-    }
 }
 
 class SemanticException extends RuntimeException {

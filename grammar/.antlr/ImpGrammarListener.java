@@ -37,6 +37,16 @@ public interface ImpGrammarListener extends ParseTreeListener {
 	 */
 	void exitVariableDeclaration(ImpGrammarParser.VariableDeclarationContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ImpGrammarParser#recordInit}.
+	 * @param ctx the parse tree
+	 */
+	void enterRecordInit(ImpGrammarParser.RecordInitContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ImpGrammarParser#recordInit}.
+	 * @param ctx the parse tree
+	 */
+	void exitRecordInit(ImpGrammarParser.RecordInitContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ImpGrammarParser#typeDeclaration}.
 	 * @param ctx the parse tree
 	 */
@@ -296,4 +306,14 @@ public interface ImpGrammarListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitModifiablePrimary(ImpGrammarParser.ModifiablePrimaryContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link ImpGrammarParser#fieldAssignment}.
+	 * @param ctx the parse tree
+	 */
+	void enterFieldAssignment(ImpGrammarParser.FieldAssignmentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ImpGrammarParser#fieldAssignment}.
+	 * @param ctx the parse tree
+	 */
+	void exitFieldAssignment(ImpGrammarParser.FieldAssignmentContext ctx);
 }

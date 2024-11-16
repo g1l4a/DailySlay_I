@@ -1,3 +1,6 @@
-routine foo(a: integer) is
-    var a: integer is 8 + 9
+routine foo(a : integer) is
+    a := a + 1
 end
+
+foo(5)
+

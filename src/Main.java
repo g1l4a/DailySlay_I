@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+    
         CharStream input = CharStreams.fromFileName("input.txt");
 
         ImpGrammarLexer lexer = new ImpGrammarLexer(input);
@@ -13,21 +14,22 @@ public class Main {
 
         ImpGrammarParser parser = new ImpGrammarParser(tokens);
 
-        ParseTree tree = parser.program(); 
+        ParseTree tree = parser.program();
 
         Visitor visitor = new Visitor();
         ASTNode astRoot = visitor.visit(tree);
         
         ASTPrinter printer = new ASTPrinter();
+        System.out.println("AST before semantic analysis:");
         printer.printAST(astRoot, ""); 
-
         System.out.println();
 
         SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
         semanticAnalyzer.analyze(astRoot);
         System.out.println("Semantic analysis completed successfully.");
 
-        ASTPrinter printer1 = new ASTPrinter();
-        printer1.printAST(astRoot, ""); 
+        System.out.println("AST after semantic analysis:");
+        printer.printAST(astRoot, "");
     }
 }
+
