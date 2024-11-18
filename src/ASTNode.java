@@ -1,7 +1,7 @@
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 abstract class ASTNode {
     private ASTNode parent;
@@ -64,6 +64,7 @@ class VarDeclNode extends SimpleDeclarationNode {
     String varName;
     ASTNode varType;
     ASTNode expression;
+    public int varIndex;
 
     VarDeclNode(String varName, ASTNode varType, ASTNode expression) {
         this.varName = varName;
@@ -418,6 +419,7 @@ class BooleanLiteralNode extends ExpressionNode {
 
 class VarRefNode extends ExpressionNode {
     String varName;
+    public int varIndex;
 
     VarRefNode(String varName) {
         this.varName = varName;
@@ -496,6 +498,7 @@ class ParametersNode extends ASTNode {
 class ParameterDeclNode extends ASTNode {
     String varName;
     ASTNode type;
+    int varIndex;
 
     ParameterDeclNode(String varName, ASTNode type) {
         this.varName = varName;

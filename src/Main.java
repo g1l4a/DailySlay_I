@@ -20,16 +20,21 @@ public class Main {
         ASTNode astRoot = visitor.visit(tree);
         
         ASTPrinter printer = new ASTPrinter();
-        System.out.println("AST before semantic analysis:");
-        printer.printAST(astRoot, ""); 
+        // System.out.println("AST before semantic analysis:");
+        // printer.printAST(astRoot, ""); 
         System.out.println();
 
         SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
         semanticAnalyzer.analyze(astRoot);
-        System.out.println("Semantic analysis completed successfully.");
+        // System.out.println("Semantic analysis completed successfully.");
 
-        System.out.println("AST after semantic analysis:");
+        // System.out.println("AST after semantic analysis:");
         printer.printAST(astRoot, "");
+
+        CodeGenerator codeGenerator = new CodeGenerator();
+        String generatedCode = codeGenerator.generate(astRoot);  
+        System.out.println("Generated code:");
+        System.out.println(generatedCode);  
     }
 }
 

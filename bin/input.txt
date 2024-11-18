@@ -2,6 +2,8 @@ routine foo(a : integer) is
     print(a)
 end
 
-var b: integer is 6
-foo(b)
+routine main() is
+    var b: integer is 6
+    foo(b)
+end
 
