@@ -36,12 +36,6 @@ public class CodeGenerator {
             visit(decl);
         }
 
-        code.append(".method public static main([Ljava/lang/String;)V\n");
-        code.append(".limit stack 10\n");
-        code.append(".limit locals 10\n");
-
-        code.append("return\n");
-        code.append(".end method\n");
     }
 
     private void visit(ASTNode node) {
@@ -150,17 +144,13 @@ public class CodeGenerator {
     }
 
     private void visitVarDecl(VarDeclNode node) {
-        int index = allocateVarIndex(); 
-        node.varIndex = index; 
-
+        int index = allocateVarIndex();
+        node.varIndex = index;
         if (node.expression != null) {
             visit(node.expression);
-            code.append("istore ");
-            code.append(index).append("\n");
+            code.append("   ").append("istore_").append(index).append("\n");
         } else {
-            code.append("iconst_0\n");
-            code.append("istore ");
-            code.append(index).append("\n");
+            code.append("   ").append("iconst_0\n").append("istore_").append(index).append("\n");
         }
     }
 
@@ -199,38 +189,45 @@ public class CodeGenerator {
         visit(node.right);
         int index = ((VarRefNode) node.left).varIndex;
         // code.append("\n").append("; Parameter ").append(node.left).append(" has index ").append(index).append(" in AssignmentNode ").append("\n");
-        code.append("istore ").append(index).append("\n");
+        code.append("   istore_").append(index).append("\n");
     }
 
     private void visitVarRef(VarRefNode node) {
         int index = node.varIndex;
         // code.append("\n").append("; Parameter ").append(node).append(" with name ").append(node.varName).append(" has index ").append(index).append(" in VarRefNode").append("\n");
-        code.append("iconst_0\nistore ").append(index).append("\n");
-        code.append("iload ").append(index).append("\n");
+        code.append("   iload_").append(index).append("\n");
     }
 
     private void visitRoutineDecl(RoutineDeclNode node) {
-        code.append(".method public static ").append(node.routineName).append("()V\n");
-        code.append(".limit stack 10\n");
-        code.append(".limit locals ").append(nextVarIndex + node.parameters.size() + 1).append("\n");
-
-        for (ASTNode param : node.parameters) {
+        code.append(".method public static ").append(node.routineName).append("(");
+        
+        if (node.routineName.equals("main")) {
+            code.append("[Ljava/lang/String;");
+        } else {
+            for (ASTNode param : node.parameters) {
             visitParameterDecl((ParameterDeclNode) param);
         }
+        }
+
+        code.append(")V\n");
+        code.append("   .limit stack 10\n");
+        code.append("   .limit locals ").append(nextVarIndex + node.parameters.size() + 1).append("\n");
+
     
         for (ASTNode statement : node.body) {
             visit(statement);
         }
 
-        code.append("return\n");
+        code.append("   return\n");
         code.append(".end method\n");
     }
 
     private void visitRoutineCall(RoutineCallNode node) {
+        code.append("   invokestatic MyProgram/").append(node.routineName).append("(");
         for (ASTNode param : node.parameters) {
             visit(param);
         }
-        code.append("invoke static MyProgram/").append(node.routineName).append("(I)V\n");
+        code.append(")V\n");
     }
 
     private void visitForLoop(ForLoopNode node) {
@@ -390,11 +387,11 @@ public class CodeGenerator {
     }
 
     private void visitPrint(PrintNode node) {
-        visit(node.expression);
-        code.append("getstatic java/lang/System/out Ljava/io/PrintStream;\n");
+        code.append("   getstatic java/lang/System/out Ljava/io/PrintStream;\n");
         // code.append("dup\n");
         // code.append("swap\n");
-        code.append("invokevirtual java/io/PrintStream/println(I)V\n");
+        visit(node.expression);
+        code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
     }
 
     private void visitBinaryExpression(BinaryExpressionNode node) {
@@ -420,10 +417,8 @@ public class CodeGenerator {
 
     private void visitIntLiteral(IntLiteralNode node) {
         int value = node.value;
-        if (value >= -128 && value <= 127) {
-            code.append("bipush ").append(value).append("\n");
-        } else {
-            code.append("ldc ").append(value).append("\n");
-        }
+        
+        code.append("   ldc ").append(value).append("\n");
+        
     }
 }
