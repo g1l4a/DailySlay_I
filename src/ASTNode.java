@@ -498,11 +498,12 @@ class ParametersNode extends ASTNode {
 class ParameterDeclNode extends ASTNode {
     String varName;
     ASTNode type;
-    int varIndex;
+    public int varIndex;
 
     ParameterDeclNode(String varName, ASTNode type) {
         this.varName = varName;
         this.type = type;
+        this.varIndex = 0;
 
         if (type != null) type.setParent(this);
     }

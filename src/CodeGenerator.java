@@ -1,13 +1,18 @@
+import java.util.HashMap;
+import java.util.Map;
+
 public class CodeGenerator {
     private StringBuilder code;
     private int labelCounter; 
     private int nextVarIndex;
     private String currentBreakLabel;
+    private Map<String, VarDeclNode> symbolTable;
 
     public CodeGenerator() {
         this.code = new StringBuilder();
         this.labelCounter = 0;
         this.nextVarIndex = 0;
+        this.symbolTable = new HashMap<>();
     }
 
     private String generateLabel(String base) {
@@ -15,8 +20,7 @@ public class CodeGenerator {
     }
 
     private int allocateVarIndex() {
-        int index = nextVarIndex++;
-        return index;
+        return nextVarIndex++;
     }
 
     public String generate(ASTNode root) {
@@ -32,9 +36,24 @@ public class CodeGenerator {
         code.append(".class public MyProgram\n");
         code.append(".super java/lang/Object\n");
 
+        code.append(".method public static main([Ljava/lang/String;)V\n");
+        code.append("   .limit stack 10\n");
+        code.append("   .limit locals 10\n");
+
         for (ASTNode decl : node.declarations) {
+        if (!(decl instanceof RoutineDeclNode)) {
             visit(decl);
+            }
         }
+
+        code.append("   return\n");
+        code.append(".end method\n");
+
+        for (ASTNode decl : node.declarations) {
+        if (decl instanceof RoutineDeclNode) {
+            visit(decl); 
+        }
+    }
 
     }
 
@@ -146,6 +165,7 @@ public class CodeGenerator {
     private void visitVarDecl(VarDeclNode node) {
         int index = allocateVarIndex();
         node.varIndex = index;
+        symbolTable.put(node.varName, node);
         if (node.expression != null) {
             visit(node.expression);
             code.append("   ").append("istore_").append(index).append("\n");
@@ -187,27 +207,49 @@ public class CodeGenerator {
 
     private void visitAssignment(AssignmentNode node) {
         visit(node.right);
-        int index = ((VarRefNode) node.left).varIndex;
-        // code.append("\n").append("; Parameter ").append(node.left).append(" has index ").append(index).append(" in AssignmentNode ").append("\n");
-        code.append("   istore_").append(index).append("\n");
+        if (node.left instanceof VarRefNode) {
+            VarDeclNode varDecl = symbolTable.get(((VarRefNode) node.left).varName);
+            int inx = varDecl.varIndex;
+            ASTNode type = varDecl.varType;
+
+            if (type instanceof PrimitiveTypeNode) {
+                ExpressionNode typeExp = castPrimitiveToExpression((PrimitiveTypeNode) type);
+                if (typeExp instanceof IntLiteralNode || typeExp instanceof BooleanLiteralNode) {
+                    code.append("   istore_").append(inx).append("\n");
+                } else if (typeExp instanceof RealLiteralNode) {
+                    code.append("   fstore_").append(inx).append("\n");
+                } else if (typeExp instanceof CharLiteralNode) {
+                    code.append("   astore_").append(inx).append("\n");
+                }
+            }
+        }
+        
     }
 
     private void visitVarRef(VarRefNode node) {
-        int index = node.varIndex;
-        // code.append("\n").append("; Parameter ").append(node).append(" with name ").append(node.varName).append(" has index ").append(index).append(" in VarRefNode").append("\n");
-        code.append("   iload_").append(index).append("\n");
+        VarDeclNode varDecl = symbolTable.get(node.varName);
+        int inx = varDecl.varIndex;
+        ASTNode type = varDecl.varType;
+
+        if (type instanceof PrimitiveTypeNode) {
+            ExpressionNode typeExp = castPrimitiveToExpression((PrimitiveTypeNode) type);
+            if (typeExp instanceof IntLiteralNode || typeExp instanceof BooleanLiteralNode) {
+                code.append("   iload_").append(inx).append("\n");
+            } else if (typeExp instanceof RealLiteralNode) {
+                code.append("   fload_").append(inx).append("\n");
+            } else if (typeExp instanceof CharLiteralNode) {
+                code.append("   aload_").append(inx).append("\n");
+            }
+        }
     }
 
     private void visitRoutineDecl(RoutineDeclNode node) {
         code.append(".method public static ").append(node.routineName).append("(");
         
-        if (node.routineName.equals("main")) {
-            code.append("[Ljava/lang/String;");
-        } else {
-            for (ASTNode param : node.parameters) {
+        for (ASTNode param : node.parameters) {
             visitParameterDecl((ParameterDeclNode) param);
         }
-        }
+        
 
         code.append(")V\n");
         code.append("   .limit stack 10\n");
@@ -223,9 +265,29 @@ public class CodeGenerator {
     }
 
     private void visitRoutineCall(RoutineCallNode node) {
-        code.append("   invokestatic MyProgram/").append(node.routineName).append("(");
         for (ASTNode param : node.parameters) {
             visit(param);
+        }
+        code.append("   invokestatic MyProgram/").append(node.routineName).append("(");
+        for (ASTNode param : node.parameters) {
+            if (param instanceof VarRefNode) {
+                VarDeclNode varDecl = symbolTable.get(((VarRefNode)param).varName);
+                int inx = varDecl.varIndex;
+                ASTNode type = varDecl.varType;
+
+                if (type instanceof PrimitiveTypeNode) {
+                    ExpressionNode typeExp = castPrimitiveToExpression((PrimitiveTypeNode) type);
+                    if (typeExp instanceof IntLiteralNode) {
+                        code.append("I");
+                    } else if (typeExp instanceof RealLiteralNode) {
+                        code.append("F");
+                    } else if (typeExp instanceof CharLiteralNode) {
+                        code.append("C");
+                    } else if (typeExp instanceof BooleanLiteralNode) {
+                        code.append("Z");
+                    }
+                }
+            }
         }
         code.append(")V\n");
     }
@@ -258,15 +320,15 @@ public class CodeGenerator {
     }
 
     private void visitRealLiteral(RealLiteralNode node) {
-        code.append("ldc ").append(node.value).append("\n");
+        code.append("   ldc ").append(node.value).append("\n");
     }
 
     private void visitCharLiteral(CharLiteralNode node) {
-        code.append("ldc ").append((int) node.value).append("\n");
+        code.append("   ldc ").append((int) node.value).append("\n");
     }
 
     private void visitBooleanLiteral(BooleanLiteralNode node) {
-        code.append("ldc ").append(node.value ? 1 : 0).append("\n");
+        code.append("   ldc ").append(node.value ? 1 : 0).append("\n");
     }
 
     private void visitArrayAccess(ArrayAccessNode node) {
@@ -315,14 +377,25 @@ public class CodeGenerator {
     }
 
     private void visitParameterDecl(ParameterDeclNode node) {
-        // visit(node.type);
-        int index = allocateVarIndex();
-        node.varIndex = index;
+        String name = node.varName;
+        ASTNode type = node.type;
 
-        // code.append("iconst_0\n"); // Загружаем константу 0
-        // code.append("istore ").append(index).append("\n");
-        // code.append("\n").append("; Parameter ").append(node.varName).append(" has index ").append(index).append(" in ParameterDeclNode ").append("\n");
+        if (type instanceof PrimitiveTypeNode) {
+            VarDeclNode nodeForTable = new VarDeclNode(name, type, null);
+            symbolTable.put(name, nodeForTable);
+            ExpressionNode typeLiteral = castPrimitiveToExpression((PrimitiveTypeNode) type);
+            if (typeLiteral instanceof IntLiteralNode) {
+                code.append("I");
+            } else if (typeLiteral instanceof RealLiteralNode) {
+                code.append("F");
+            } else if (typeLiteral instanceof CharLiteralNode) {
+                code.append("C");
+            } else if (typeLiteral instanceof BooleanLiteralNode) {
+                code.append("Z");
+            }
+        }
     }
+
 
     private void visitBody(BodyNode node) {
         for (SimpleDeclarationNode decl : node.simpleDeclarations) {
@@ -388,10 +461,54 @@ public class CodeGenerator {
 
     private void visitPrint(PrintNode node) {
         code.append("   getstatic java/lang/System/out Ljava/io/PrintStream;\n");
-        // code.append("dup\n");
-        // code.append("swap\n");
         visit(node.expression);
-        code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
+        ExpressionNode expression = (ExpressionNode) node.expression;
+        if (expression instanceof IntLiteralNode) {
+            code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
+        } else if (expression instanceof RealLiteralNode) {
+            code.append("   invokevirtual java/io/PrintStream/println(F)V\n");
+        } else if (expression instanceof CharLiteralNode) {
+            code.append("   invokevirtual java/io/PrintStream/println(C)V\n");
+        } else if (expression instanceof BooleanLiteralNode) {
+            code.append("   invokevirtual java/io/PrintStream/println(Z)V\n");
+        } else if (expression instanceof VarRefNode) {
+            VarDeclNode var = symbolTable.get(((VarRefNode) expression).varName);
+            ExpressionNode type = castPrimitiveToExpression((PrimitiveTypeNode) var.varType);
+            if (type instanceof IntLiteralNode) {
+                code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
+            } else if (type instanceof RealLiteralNode) {
+                code.append("   invokevirtual java/io/PrintStream/println(F)V\n");
+            } else if (type instanceof CharLiteralNode) {
+                code.append("   invokevirtual java/io/PrintStream/println(C)V\n");
+            } else if (type instanceof BooleanLiteralNode) {
+                code.append("   invokevirtual java/io/PrintStream/println(Z)V\n");
+            } else {
+                //System.out.println(type.getClass());
+                code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+            }
+        } else {
+           
+            code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
+        }
+
+    }
+
+    private ExpressionNode castPrimitiveToExpression(PrimitiveTypeNode type) {
+        String typeStr = type.type;
+        if (typeStr.equals("integer"))
+        {
+            return new IntLiteralNode(0);
+        } else if (typeStr.equals("real"))
+        {
+            return new RealLiteralNode(0.0);
+        } else if (typeStr.equals("char"))
+        {
+            return new CharLiteralNode(' ');
+        } else if (typeStr.equals("boolean"))
+        {
+            return new BooleanLiteralNode(false);
+        }
+        return null;
     }
 
     private void visitBinaryExpression(BinaryExpressionNode node) {
@@ -399,16 +516,16 @@ public class CodeGenerator {
         visit(node.getRight());
         switch (node.getOperator()) {
             case "+":
-                code.append("iadd\n");
+                code.append("   iadd\n");
                 break;
             case "-":
-                code.append("isub\n");
+                code.append("   isub\n");
                 break;
             case "*":
-                code.append("imul\n");
+                code.append("   imul\n");
                 break;
             case "/":
-                code.append("idiv\n");
+                code.append("   idiv\n");
                 break;
             default:
                 throw new IllegalArgumentException("Unknown operator: " + node.getOperator());
