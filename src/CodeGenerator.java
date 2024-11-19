@@ -106,7 +106,7 @@ public class CodeGenerator {
         }
          else if (node instanceof ArrayAccessNode) {
             // code.append("вызов visitArrayAccess\n");
-            visitArrayAccess((ArrayAccessNode) node);
+            visitArrayAccess((ArrayAccessNode) node, true);
         } else if (node instanceof BinaryOpNode) {
             // code.append("вызов visitBinaryOp\n");
             visitBinaryOp((BinaryOpNode) node);
@@ -170,7 +170,22 @@ public class CodeGenerator {
             visit(node.expression);
             code.append("   ").append("istore_").append(index).append("\n");
         } else {
-            code.append("   ").append("iconst_0\n").append("istore_").append(index).append("\n");
+            if (node.varType instanceof ArrayTypeNode) {
+                ArrayTypeNode arr = (ArrayTypeNode) node.varType;
+                code.append("   ldc ").append(((IntLiteralNode) arr.sizeExpression).value).append("\n");
+                ExpressionNode type = castPrimitiveToExpression((PrimitiveTypeNode) arr.elementType);
+                if (type instanceof IntLiteralNode) {
+                        code.append("   newarray ").append("int").append("\n");
+                    } else if (type instanceof RealLiteralNode) {
+                        code.append("   newarray ").append("float").append("\n");
+                    } else if (type instanceof CharLiteralNode) {
+                        code.append("   newarray ").append("char").append("\n");
+                    } else if (type instanceof BooleanLiteralNode) {
+                        code.append("   newarray ").append("boolean").append("\n");
+                    }
+                code.append("   astore_").append(node.varIndex).append("\n");
+
+            }
         }
     }
 
@@ -179,6 +194,7 @@ public class CodeGenerator {
             visit(node.type);
         }
     }
+
 
     private void visitPrimitiveType(PrimitiveTypeNode node) {
         code.append("; Primitive type: ").append(node.type).append("\n");
@@ -206,8 +222,8 @@ public class CodeGenerator {
     }
 
     private void visitAssignment(AssignmentNode node) {
-        visit(node.right);
         if (node.left instanceof VarRefNode) {
+            visit(node.right);
             VarDeclNode varDecl = symbolTable.get(((VarRefNode) node.left).varName);
             int inx = varDecl.varIndex;
             ASTNode type = varDecl.varType;
@@ -222,8 +238,16 @@ public class CodeGenerator {
                     code.append("   astore_").append(inx).append("\n");
                 }
             }
+        } else if (node.left instanceof ArrayAccessNode) {
+            ArrayAccessNode arrayAccess = (ArrayAccessNode) node.left;
+            
+            visitArrayAccess(arrayAccess, false);
+            visit(arrayAccess.index);
+            
+            visit(node.right);
+            
+            code.append("   iastore\n");
         }
-        
     }
 
     private void visitVarRef(VarRefNode node) {
@@ -331,11 +355,15 @@ public class CodeGenerator {
         code.append("   ldc ").append(node.value ? 1 : 0).append("\n");
     }
 
-    private void visitArrayAccess(ArrayAccessNode node) {
-        visit(node.index);
-
-        code.append("aload ").append(node.array).append("\n");
-        code.append("iaload\n");
+    private void visitArrayAccess(ArrayAccessNode node, boolean onlyAccess) {
+        VarDeclNode varDecl = symbolTable.get(node.array);
+        int inx = varDecl.varIndex;
+        code.append("   aload_").append(inx).append("\n");
+        if (onlyAccess) {
+            visit(node.index);
+            code.append("   iaload\n");
+        }
+        
     }
 
     private void visitBinaryOp(BinaryOpNode node) {
@@ -486,6 +514,9 @@ public class CodeGenerator {
                 //System.out.println(type.getClass());
                 code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
             }
+        } else if (expression instanceof ArrayAccessNode) {
+            ArrayAccessNode arr = (ArrayAccessNode) expression;
+            code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
         } else {
            
             code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
