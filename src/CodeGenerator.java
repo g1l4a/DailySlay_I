@@ -3,7 +3,7 @@ import java.util.Map;
 
 public class CodeGenerator {
     private StringBuilder code;
-    private int labelCounter; 
+    private int labelCounter;
     private int nextVarIndex;
     private String currentBreakLabel;
     private Map<String, VarDeclNode> symbolTable;
@@ -33,6 +33,7 @@ public class CodeGenerator {
     }
 
     private void visitProgram(ProgramNode node) {
+        // Генерация главного класса
         code.append(".class public MyProgram\n");
         code.append(".super java/lang/Object\n");
 
@@ -40,21 +41,32 @@ public class CodeGenerator {
         code.append("   .limit stack 10\n");
         code.append("   .limit locals 10\n");
 
+        // Генерация не-процедурных деклараций (не RecordTypeNode, не RoutineDeclNode)
         for (ASTNode decl : node.declarations) {
-        if (!(decl instanceof RoutineDeclNode)) {
-            visit(decl);
+            if (!(decl instanceof TypeDeclNode) && !(decl instanceof RoutineDeclNode)) {
+                code.append(";DEBUG1: working on non-procedure declaration ").append(decl).append("\n");
+                visit(decl); // Обработка не-процедурных деклараций
             }
         }
 
         code.append("   return\n");
         code.append(".end method\n");
 
+        // Генерация записей (RecordTypeNode)
         for (ASTNode decl : node.declarations) {
-        if (decl instanceof RoutineDeclNode) {
-            visit(decl); 
+            if (decl instanceof RecordTypeNode) {
+                code.append(";DEBUG2: working on RecordTypeNode ").append(decl).append("\n");
+                visit(decl); // Обработка записей (RecordTypeNode)
+            }
         }
-    }
 
+        // Генерация процедур (RoutineDeclNode)
+        for (ASTNode decl : node.declarations) {
+            if (decl instanceof TypeDeclNode) {
+                code.append(";DEBUG3: working on TypeDeclNode ").append(decl).append("\n");
+                visit(decl); // Обработка процедур (RoutineDeclNode)
+            }
+        }
     }
 
     private void visit(ASTNode node) {
@@ -103,8 +115,7 @@ public class CodeGenerator {
         } else if (node instanceof ReturnNode) {
             // code.append("вызов visitReturn\n");
             visitReturn((ReturnNode) node);
-        }
-         else if (node instanceof ArrayAccessNode) {
+        } else if (node instanceof ArrayAccessNode) {
             // code.append("вызов visitArrayAccess\n");
             visitArrayAccess((ArrayAccessNode) node);
         } else if (node instanceof BinaryOpNode) {
@@ -197,11 +208,112 @@ public class CodeGenerator {
         }
     }
 
-    private void visitRecordType(RecordTypeNode node) {
-        code.append("; Record type\n");
+    // private void visitRecordType(RecordTypeNode node) {
+    //     code.append("; Record type\n");
 
-        for (ASTNode field : node.fields) {
-            visit(field);
+    //     for (ASTNode field : node.fields) {
+    //         visit(field);
+    //     }
+    // }
+
+    private void visitRecordType(RecordTypeNode node) {
+        if (node.getParent() instanceof TypeDeclNode) {
+            String recordName = ((TypeDeclNode) node.getParent()).typeName; // имя record
+            if (recordName == null || recordName.isEmpty()) {
+                throw new IllegalArgumentException("Record name is null or empty");
+            }
+            code.append(".class public ").append(recordName).append("\n");
+            code.append(".super java/lang/Object\n");
+
+            // Генерация полей
+            for (ASTNode field : node.fields) {
+                if (field instanceof VarDeclNode) {
+                    VarDeclNode varDeclField = (VarDeclNode) field;
+                    String fieldName = varDeclField.varName;
+                    String fieldType = getTypeDescriptor(varDeclField.varType);
+                    code.append(".field public ").append(fieldName).append(" ").append(fieldType).append("\n");
+                } else {
+                    throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+                }
+            }
+
+            // Генерация конструктора
+            code.append(".method public <init>(");
+            for (ASTNode field : node.fields) {
+                if (field instanceof VarDeclNode) {
+                    VarDeclNode varDeclField = (VarDeclNode) field;
+                    code.append(getTypeDescriptor(varDeclField.varType));
+                } else {
+                    throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+                }
+            }
+            code.append(")V\n");
+            code.append("   aload_0\n");
+            code.append("   invokespecial java/lang/Object/<init>()V\n");
+
+            int paramIndex = 1; // Индексы параметров конструктора
+            for (ASTNode field : node.fields) {
+                if (field instanceof VarDeclNode) {
+                    VarDeclNode varDeclField = (VarDeclNode) field;
+                    String fieldName = varDeclField.varName;
+                    String fieldType = getTypeDescriptor(varDeclField.varType);
+                    code.append("   aload_0\n");
+                    code.append("   ").append(loadInstructionForType(varDeclField)).append(" ").append(paramIndex)
+                            .append("\n");
+                    code.append("   putfield ").append(recordName).append("/").append(fieldName).append(" ")
+                            .append(fieldType)
+                            .append("\n");
+                    paramIndex++;
+                } else {
+                    throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+                }
+            }
+            code.append("   return\n");
+            code.append(".end method\n");
+        }
+        else {
+            throw new IllegalArgumentException("Parent class is not TypeDeclNode for " + node.getClass().getSimpleName());
+        }
+    }
+
+
+    private String loadInstructionForType(ASTNode type) {
+        if (type instanceof PrimitiveTypeNode) {
+            String primitiveType = ((PrimitiveTypeNode) type).type;
+            switch (primitiveType) {
+                case "int":
+                case "boolean":
+                    return "iload";
+                case "real":
+                    return "fload";
+                case "char":
+                    return "aload";
+                default:
+                    throw new IllegalArgumentException("Unknown primitive type: " + primitiveType);
+            }
+        }
+        return "aload"; // для объектов
+    }
+
+    private String getTypeDescriptor(ASTNode type) {
+        if (type instanceof PrimitiveTypeNode) {
+            String primitiveType = ((PrimitiveTypeNode) type).type;
+            switch (primitiveType) {
+                case "int":
+                    return "I";
+                case "real":
+                    return "F";
+                case "boolean":
+                    return "Z";
+                case "char":
+                    return "C";
+                default:
+                    throw new IllegalArgumentException("Unknown primitive type: " + primitiveType);
+            }
+        } else if (type instanceof UserDefinedTypeNode) {
+            return "L" + ((UserDefinedTypeNode) type).typeName + ";";
+        } else {
+            throw new IllegalArgumentException("Unsupported type node: " + type.getClass().getSimpleName());
         }
     }
 
@@ -223,7 +335,7 @@ public class CodeGenerator {
                 }
             }
         }
-        
+
     }
 
     private void visitVarRef(VarRefNode node) {
@@ -245,17 +357,15 @@ public class CodeGenerator {
 
     private void visitRoutineDecl(RoutineDeclNode node) {
         code.append(".method public static ").append(node.routineName).append("(");
-        
+
         for (ASTNode param : node.parameters) {
             visitParameterDecl((ParameterDeclNode) param);
         }
-        
 
         code.append(")V\n");
         code.append("   .limit stack 10\n");
         code.append("   .limit locals ").append(nextVarIndex + node.parameters.size() + 1).append("\n");
 
-    
         for (ASTNode statement : node.body) {
             visit(statement);
         }
@@ -271,7 +381,7 @@ public class CodeGenerator {
         code.append("   invokestatic MyProgram/").append(node.routineName).append("(");
         for (ASTNode param : node.parameters) {
             if (param instanceof VarRefNode) {
-                VarDeclNode varDecl = symbolTable.get(((VarRefNode)param).varName);
+                VarDeclNode varDecl = symbolTable.get(((VarRefNode) param).varName);
                 int inx = varDecl.varIndex;
                 ASTNode type = varDecl.varType;
 
@@ -355,6 +465,47 @@ public class CodeGenerator {
             case "/":
                 code.append("idiv\n");
                 break;
+            case ">":
+                code.append("if_icmpgt LABEL_TRUE\n");
+                code.append("iconst_0\n"); 
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n"); 
+                code.append("LABEL_END:\n");
+                break;
+            case ">=":
+                code.append("if_icmpge LABEL_TRUE\n");
+                code.append("iconst_0\n");
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n");
+                code.append("LABEL_END:\n");
+                break;
+            case "<":
+                code.append("if_icmplt LABEL_TRUE\n");
+                code.append("iconst_0\n");
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n");
+                code.append("LABEL_END:\n");
+                break;
+            case "<=":
+                code.append("if_icmple LABEL_TRUE\n");
+                code.append("iconst_0\n");
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n");
+                code.append("LABEL_END:\n");
+                break;
+            case "=":
+            case "==":
+                code.append("if_icmpeq LABEL_TRUE\n");
+                code.append("iconst_0\n");
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n");
+                code.append("LABEL_END:\n");
+                break;
             default:
                 throw new RuntimeException("Unsupported binary operator: " + node.operator);
         }
@@ -395,7 +546,6 @@ public class CodeGenerator {
             }
         }
     }
-
 
     private void visitBody(BodyNode node) {
         for (SimpleDeclarationNode decl : node.simpleDeclarations) {
@@ -487,7 +637,7 @@ public class CodeGenerator {
                 code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
             }
         } else {
-           
+
             code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
         }
 
@@ -495,17 +645,13 @@ public class CodeGenerator {
 
     private ExpressionNode castPrimitiveToExpression(PrimitiveTypeNode type) {
         String typeStr = type.type;
-        if (typeStr.equals("integer"))
-        {
+        if (typeStr.equals("integer")) {
             return new IntLiteralNode(0);
-        } else if (typeStr.equals("real"))
-        {
+        } else if (typeStr.equals("real")) {
             return new RealLiteralNode(0.0);
-        } else if (typeStr.equals("char"))
-        {
+        } else if (typeStr.equals("char")) {
             return new CharLiteralNode(' ');
-        } else if (typeStr.equals("boolean"))
-        {
+        } else if (typeStr.equals("boolean")) {
             return new BooleanLiteralNode(false);
         }
         return null;
@@ -534,8 +680,8 @@ public class CodeGenerator {
 
     private void visitIntLiteral(IntLiteralNode node) {
         int value = node.value;
-        
+
         code.append("   ldc ").append(value).append("\n");
-        
+
     }
 }
