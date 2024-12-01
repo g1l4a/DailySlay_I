@@ -172,9 +172,13 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitForLoop(ImpGrammarParser.ForLoopContext ctx) {
-        String iterator = ctx.TK_VARNAME().getText();
+        String iteratorName = ctx.TK_VARNAME().getText();
+        VarRefNode iterator = new VarRefNode(iteratorName);
         ASTNode range = visit(ctx.range());
         List<ASTNode> body = new ArrayList<>();
+
+        boolean isReversed = ctx.getChildCount() > 3 && ctx.getChild(3).getText().equals("reverse");
+        
         
         for (ImpGrammarParser.SimpleDeclarationContext decl : ctx.body().simpleDeclaration()) {
             body.add(visit(decl));
@@ -184,7 +188,14 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
             body.add(visit(stmt));
         }
         
-        return new ForLoopNode(iterator, range, body);
+        return new ForLoopNode(iterator, range, body, isReversed);
+    }
+
+    @Override
+    public ASTNode visitRange(ImpGrammarParser.RangeContext ctx) {
+        ASTNode lowerBound = visit(ctx.expression(0));
+        ASTNode upperBound = visit(ctx.expression(0));
+        return new RangeNode(lowerBound, upperBound);
     }
 
     @Override

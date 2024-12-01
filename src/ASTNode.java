@@ -240,14 +240,16 @@ class WhileLoopNode extends StatementNode {
 }
 
 class ForLoopNode extends StatementNode {
-    String iterator;
+    ASTNode iterator;
     ASTNode range;
     List<ASTNode> body;
+    boolean isReversed;
 
-    ForLoopNode(String iterator, ASTNode range, List<ASTNode> body) {
+    ForLoopNode(ASTNode iterator, ASTNode range, List<ASTNode> body, boolean isReversed) {
         this.iterator = iterator;
         this.range = range;
         this.body = body;
+        this.isReversed = isReversed;
 
         if (range != null) range.setParent(this);
         

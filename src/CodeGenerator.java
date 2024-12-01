@@ -450,6 +450,9 @@ public class CodeGenerator {
     }
 
     private void visitVarRef(VarRefNode node) {
+        if (!symbolTable.containsKey(node.varName)) {
+            symbolTable.put(node.varName, new VarDeclNode(node.varName, node, null));
+        }
         VarDeclNode varDecl = symbolTable.get(node.varName);
         int inx = varDecl.varIndex;
         ASTNode type = varDecl.varType;
@@ -463,6 +466,8 @@ public class CodeGenerator {
             } else if (typeExp instanceof CharLiteralNode) {
                 code.append("   aload_").append(inx).append("\n");
             }
+        } else if (type instanceof VarRefNode) {
+            code.append("   iload_").append(inx).append("\n");
         }
     }
 
@@ -513,35 +518,48 @@ public class CodeGenerator {
         code.append(")V\n");
     }
 
-    private void visitForLoop(ForLoopNode node) {
-        String startLabel = generateLabel("L" + (labelCounter++));
-        String endLabel = generateLabel("L" + (labelCounter++));
-        currentBreakLabel = endLabel;
+    //private void visitForLoop(ForLoopNode node) {
+        //String startLabel = generateLabel("L" + (labelCounter++));
+       // String endLabel = generateLabel("L" + (labelCounter++));
+       // currentBreakLabel = endLabel;
 
-        if (!(node.range instanceof RangeNode)) {
-            throw new RuntimeException("Expected RangeNode for for-loop range");
-        }
-        RangeNode range = (RangeNode) node.range;
+      //  if (!(node.range instanceof RangeNode)) {
+      //      throw new RuntimeException("Expected RangeNode for for-loop range");
+      //  }
+      //  RangeNode range = (RangeNode) node.range;
 
-        visit(range.lowerBound);
-        code.append("istore_0\n");
+      //  int lowerIndex = allocateVarIndex(); // Allocate index for lower bound
+       // int upperIndex = allocateVarIndex(); // Allocate index for upper bound
+      //  int iteratorIndex = allocateVarIndex(); // Allocate index for iterator
 
-        visit(range.upperBound);
-        code.append("istore_1\n");
-        code.append(startLabel).append(":\n");
+        // Store the lower bound
+       // visit(range.lowerBound);
+        //code.append("   istore_").append(lowerIndex).append("\n");
 
-        code.append("iload_0\n");
-        code.append("iload_1\n");
-        code.append("if_icmpgt ").append(endLabel).append("\n");
+       // visit(node.iterator);
 
-        for (ASTNode stmt : node.body) {
-            visit(stmt);
-        }
+        // Store the upper bound
+       // visit(range.upperBound);
+        //code.append("   istore_").append(upperIndex).append("\n");
 
-        code.append("iinc 0 1\n");
+        // Initialize the iterator
+        //code.append("   iload_").append(lowerIndex).append("\n");
+        //code.append("   istore_").append(iteratorIndex).append("\n");
 
-        code.append("goto ").append(startLabel).append("\n");
-        code.append(endLabel).append(":\n");
+        //code.append("   ").append(startLabel).append(":\n");
+
+        // Compare iterator with upper bound
+        //code.append("   iload_").append(iteratorIndex).append("\n");
+       // code.append("   iload_").append(upperIndex).append("\n");
+       // code.append("   if_icmpgt ").append(endLabel).append("\n");
+       // for (ASTNode stmt : node.body) {
+       //     visit(stmt);
+       // }
+
+       // code.append("   iinc ").append(iteratorIndex).append(" 1\n");
+
+        //code.append("   goto ").append(startLabel).append("\n");
+       // code.append("   ").append(endLabel).append(":\n");
     }
 
     // private void visitForLoop(ForLoopNode node) {
@@ -819,7 +837,12 @@ public class CodeGenerator {
             code.append("   invokevirtual java/io/PrintStream/println(Z)V\n");
         } else if (expression instanceof VarRefNode) {
             VarDeclNode var = symbolTable.get(((VarRefNode) expression).varName);
-            ExpressionNode type = castPrimitiveToExpression((PrimitiveTypeNode) var.varType);
+
+            if (var.varType instanceof VarRefNode) {
+                // iterator in for loop case
+                code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
+            } else {
+                ExpressionNode type = castPrimitiveToExpression((PrimitiveTypeNode) var.varType);
             if (type instanceof IntLiteralNode) {
                 code.append("   invokevirtual java/io/PrintStream/println(I)V\n");
             } else if (type instanceof RealLiteralNode) {
@@ -832,6 +855,8 @@ public class CodeGenerator {
                 //System.out.println(type.getClass());
                 code.append("   invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V\n");
             }
+        }
+            
         } else if (expression instanceof ArrayAccessNode) {
             ArrayAccessNode arr = (ArrayAccessNode) expression;
             code.append("   invokevirtual java/io/PrintStream/println(I)V\n");

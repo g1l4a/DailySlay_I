@@ -208,11 +208,12 @@ public class SemanticAnalyzer {
 
     public void visitForLoop(ForLoopNode forLoop) {
         insideLoop = true;
-        if (symbolTable.contains(forLoop.iterator)) {
-            throw new SemanticException("Iterator " + forLoop.iterator + " is already declared.");
+        VarRefNode iteratorRef = (VarRefNode) forLoop.iterator;
+        if (symbolTable.contains(iteratorRef.varName)) {
+            throw new SemanticException("Iterator " + iteratorRef.varName + " is already declared.");
         }
-        symbolTable.put(forLoop.iterator, new VarDeclNode(forLoop.iterator, new PrimitiveTypeNode("int"), null));
-        declaredVariables.add(forLoop.iterator);
+        symbolTable.put(iteratorRef.varName, iteratorRef);
+        declaredVariables.add(iteratorRef.varName);
         analyze(forLoop.range);
         symbolTable.enterScope(); 
         for (ASTNode stmt : forLoop.body) {

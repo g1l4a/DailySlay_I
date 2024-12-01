@@ -157,7 +157,12 @@ public class ASTPrinter {
     }
 
     private void printForLoopNode(ForLoopNode node, String indent) {
-        System.out.println(indent + "iterator: " + node.iterator);
+        System.out.println(indent + "iterator: ");
+        printAST(node.iterator, indent + " ");
+        if (node.isReversed)
+        {
+            System.out.println(indent + "reversed");
+        }
         System.out.println(indent + "range:");
         printAST(node.range, indent + "  ");
         System.out.println(indent + "body:");
