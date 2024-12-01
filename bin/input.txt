@@ -1,7 +1,0 @@
-var myArray: array[5] integer
-myArray[0] := 10
-myArray[1] := 20
-myArray[2] := myArray[0] + myArray[1]
-print(myArray[0])
-print(myArray[1])
-print(myArray[2])

@@ -1,0 +1,113 @@
+TEST 1
+var x: integer is 10
+var y: integer is 20
+var z: integer
+z := x + y * 2
+print(x)
+print(y)
+print(z)
+
+TEST 2
+var a: integer is 5
+var b: integer is 10
+var result: integer
+if a > b then
+    result := a
+else
+    result := b
+end
+print(result)
+
+TEST 3
+var i: integer is 0
+while i < 5 loop
+    print(i)
+    i := i + 1
+end
+
+TEST 4
+for i in 1..5 loop
+    print(i)
+end
+for i in reverse 5..1 loop
+    print(i)
+end
+
+TEST 5
+routine add(a: integer, b: integer): integer is
+    return a + b
+end
+var sum: integer
+sum := add(10, 20)
+print(sum)
+
+TEST 6
+var arr: array [5] integer
+for i in 0..4 loop
+    arr[i] := i * i
+end
+for i in 0..4 loop
+    print(arr[i])
+end
+
+TEST 7
+type Point is record {
+    var x: integer
+    var y: integer
+} end
+var p: Point is (x: 10, y: 20)
+print(p.x)
+print(p.y)
+var p: Point is (x: 0, y: 0)
+p.x := 5
+p.y := 15
+print(p.x)
+print(p.y)
+
+TEST 8
+var a: boolean is true
+var b: boolean is false
+var c: boolean
+c := a and b
+print(c)
+c := a or b
+print(c)
+c := not a
+print(c)
+
+TEST 9
+routine max(a: integer, b: integer): integer is
+    if a > b then
+        return a
+    else
+        return b
+    end
+end
+var result: integer
+result := max(5, 10)
+print(result)
+
+TEST 10
+routine factorial(n: integer): integer is
+    if n = 0 then
+        return 1
+    else
+        return n * factorial(n - 1)
+    end
+end
+var fact: integer
+fact := factorial(5)
+print(fact)
+
+TEST 11
+var points: array [3] Point is [
+    (x: 1, y: 2),
+    (x: 3, y: 4),
+    (x: 5, y: 6)
+]
+for i in 0..2 loop
+    print(points[i].x)
+    print(points[i].y)
+end
+
+

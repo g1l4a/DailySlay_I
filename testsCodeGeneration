@@ -1,0 +1,20 @@
+//1
+var myArray: array[3] integer
+myArray[0] := 10
+myArray[1] := 20
+print(myArray[0])
+
+//2
+routine foo(a : integer) is
+    print(a)
+end
+
+var b: integer is 6
+foo(b)
+
+//3
+var b: integer is 7
+b := 11 + 10
+print(b)
+
+//4
