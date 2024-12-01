@@ -32,39 +32,66 @@ public class CodeGenerator {
         return code.toString();
     }
 
+    private boolean hasMainLogic(ProgramNode node) {
+        for (ASTNode child : node.getChildren()) {
+            if (!(child instanceof TypeDeclNode)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void visitProgram(ProgramNode node) {
         // Генерация главного класса
-        code.append(".class public MyProgram\n");
-        code.append(".super java/lang/Object\n");
+        if (hasMainLogic(node)) {
+            code.append(".class public MyProgram\n");
+            code.append(".super java/lang/Object\n");
 
-        code.append(".method public static main([Ljava/lang/String;)V\n");
-        code.append("   .limit stack 10\n");
-        code.append("   .limit locals 10\n");
+            code.append(".method public static main([Ljava/lang/String;)V\n");
+            code.append("   .limit stack 10\n");
+            code.append("   .limit locals 10\n");
 
-        // Генерация не-процедурных деклараций (не RecordTypeNode, не RoutineDeclNode)
-        for (ASTNode decl : node.declarations) {
-            if (!(decl instanceof TypeDeclNode) && !(decl instanceof RoutineDeclNode)) {
-                code.append(";DEBUG1: working on non-procedure declaration ").append(decl).append("\n");
-                visit(decl); // Обработка не-процедурных деклараций
+            // Генерация не-процедурных деклараций (не RecordTypeNode, не RoutineDeclNode)
+            for (ASTNode decl : node.declarations) {
+                if (!(decl instanceof TypeDeclNode) && !(decl instanceof RoutineDeclNode)) {
+                    // code.append(";DEBUG1: working on non-procedure declaration ").append(decl).append("\n");
+                    visit(decl); // Обработка не-процедурных деклараций
+                }
             }
-        }
 
-        code.append("   return\n");
-        code.append(".end method\n");
+            code.append("   return\n");
+            code.append(".end method\n");
 
-        // Генерация записей (RecordTypeNode)
-        for (ASTNode decl : node.declarations) {
-            if (decl instanceof RecordTypeNode) {
-                code.append(";DEBUG2: working on RecordTypeNode ").append(decl).append("\n");
-                visit(decl); // Обработка записей (RecordTypeNode)
+            // Генерация записей (RecordTypeNode)
+            for (ASTNode decl : node.declarations) {
+                if (decl instanceof RecordTypeNode) {
+                    // code.append(";DEBUG2: working on RecordTypeNode ").append(decl).append("\n");
+                    visit(decl); // Обработка записей (RecordTypeNode)
+                }
             }
-        }
 
-        // Генерация процедур (RoutineDeclNode)
-        for (ASTNode decl : node.declarations) {
-            if (decl instanceof TypeDeclNode) {
-                code.append(";DEBUG3: working on TypeDeclNode ").append(decl).append("\n");
-                visit(decl); // Обработка процедур (RoutineDeclNode)
+            // Генерация процедур (RoutineDeclNode)
+            for (ASTNode decl : node.declarations) {
+                if ((decl instanceof TypeDeclNode) || (decl instanceof RoutineDeclNode)) {
+                    // code.append(";DEBUG3: working on TypeDeclNode ").append(decl).append("\n");
+                    visit(decl); // Обработка процедур (RoutineDeclNode)
+                }
+            }
+        } else {
+            // Генерация записей (RecordTypeNode)
+            for (ASTNode decl : node.declarations) {
+                if (decl instanceof RecordTypeNode) {
+                    // code.append(";DEBUG2: working on RecordTypeNode ").append(decl).append("\n");
+                    visit(decl); // Обработка записей (RecordTypeNode)
+                }
+            }
+
+            // Генерация процедур (RoutineDeclNode)
+            for (ASTNode decl : node.declarations) {
+                if ((decl instanceof TypeDeclNode) || (decl instanceof RoutineDeclNode)) {
+                    // code.append(";DEBUG3: working on TypeDeclNode ").append(decl).append("\n");
+                    visit(decl); // Обработка процедур (RoutineDeclNode)
+                }
             }
         }
     }
@@ -117,7 +144,7 @@ public class CodeGenerator {
             visitReturn((ReturnNode) node);
         } else if (node instanceof ArrayAccessNode) {
             // code.append("вызов visitArrayAccess\n");
-            visitArrayAccess((ArrayAccessNode) node);
+            visitArrayAccess((ArrayAccessNode) node, true);
         } else if (node instanceof BinaryOpNode) {
             // code.append("вызов visitBinaryOp\n");
             visitBinaryOp((BinaryOpNode) node);
@@ -216,9 +243,69 @@ public class CodeGenerator {
     //     }
     // }
 
+    // private void visitRecordType(RecordTypeNode node) {
+    //     if (node.getParent() instanceof TypeDeclNode) {
+    //         String recordName = ((TypeDeclNode) node.getParent()).typeName; // имя record
+    //         if (recordName == null || recordName.isEmpty()) {
+    //             throw new IllegalArgumentException("Record name is null or empty");
+    //         }
+    //         code.append(".class public ").append(recordName).append("\n");
+    //         code.append(".super java/lang/Object\n");
+
+    //         // Генерация полей
+    //         for (ASTNode field : node.fields) {
+    //             if (field instanceof VarDeclNode) {
+    //                 VarDeclNode varDeclField = (VarDeclNode) field;
+    //                 String fieldName = varDeclField.varName;
+    //                 String fieldType = getTypeDescriptor(varDeclField.varType);
+    //                 code.append(".field public ").append(fieldName).append(" ").append(fieldType).append("\n");
+    //             } else {
+    //                 throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+    //             }
+    //         }
+
+    //         // Генерация конструктора
+    //         code.append(".method public <init>(");
+    //         for (ASTNode field : node.fields) {
+    //             if (field instanceof VarDeclNode) {
+    //                 VarDeclNode varDeclField = (VarDeclNode) field;
+    //                 code.append(getTypeDescriptor(varDeclField.varType));
+    //             } else {
+    //                 throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+    //             }
+    //         }
+    //         code.append(")V\n");
+    //         code.append("   aload_0\n");
+    //         code.append("   invokespecial java/lang/Object/<init>()V\n");
+
+    //         int paramIndex = 1; // Индексы параметров конструктора
+    //         for (ASTNode field : node.fields) {
+    //             if (field instanceof VarDeclNode) {
+    //                 VarDeclNode varDeclField = (VarDeclNode) field;
+    //                 String fieldName = varDeclField.varName;
+    //                 String fieldType = getTypeDescriptor(varDeclField.varType);
+    //                 code.append("   aload_0\n");
+    //                 code.append("   ").append(loadInstructionForType(varDeclField)).append(" ").append(paramIndex)
+    //                         .append("\n");
+    //                 code.append("   putfield ").append(recordName).append("/").append(fieldName).append(" ")
+    //                         .append(fieldType)
+    //                         .append("\n");
+    //                 paramIndex++;
+    //             } else {
+    //                 throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
+    //             }
+    //         }
+    //         code.append("   return\n");
+    //         code.append(".end method\n");
+    //     }
+    //     else {
+    //         throw new IllegalArgumentException("Parent class is not TypeDeclNode for " + node.getClass().getSimpleName());
+    //     }
+    // }
+
     private void visitRecordType(RecordTypeNode node) {
         if (node.getParent() instanceof TypeDeclNode) {
-            String recordName = ((TypeDeclNode) node.getParent()).typeName; // имя record
+            String recordName = ((TypeDeclNode) node.getParent()).typeName; // имя записи
             if (recordName == null || recordName.isEmpty()) {
                 throw new IllegalArgumentException("Record name is null or empty");
             }
@@ -230,7 +317,7 @@ public class CodeGenerator {
                 if (field instanceof VarDeclNode) {
                     VarDeclNode varDeclField = (VarDeclNode) field;
                     String fieldName = varDeclField.varName;
-                    String fieldType = getTypeDescriptor(varDeclField.varType);
+                    String fieldType = getTypeDescriptor(varDeclField.varType); // Получаем дескриптор типа
                     code.append(".field public ").append(fieldName).append(" ").append(fieldType).append("\n");
                 } else {
                     throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
@@ -242,7 +329,8 @@ public class CodeGenerator {
             for (ASTNode field : node.fields) {
                 if (field instanceof VarDeclNode) {
                     VarDeclNode varDeclField = (VarDeclNode) field;
-                    code.append(getTypeDescriptor(varDeclField.varType));
+                    String fieldType = getTypeDescriptor(varDeclField.varType);
+                    code.append(fieldType); // Параметры конструктора
                 } else {
                     throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
                 }
@@ -258,11 +346,10 @@ public class CodeGenerator {
                     String fieldName = varDeclField.varName;
                     String fieldType = getTypeDescriptor(varDeclField.varType);
                     code.append("   aload_0\n");
-                    code.append("   ").append(loadInstructionForType(varDeclField)).append(" ").append(paramIndex)
-                            .append("\n");
+                    code.append("   ").append(loadInstructionForType(varDeclField.varType)).append(" ")
+                            .append(paramIndex).append("\n");
                     code.append("   putfield ").append(recordName).append("/").append(fieldName).append(" ")
-                            .append(fieldType)
-                            .append("\n");
+                            .append(fieldType).append("\n");
                     paramIndex++;
                 } else {
                     throw new IllegalArgumentException("Expected VarDeclNode, got " + field.getClass().getSimpleName());
@@ -270,12 +357,11 @@ public class CodeGenerator {
             }
             code.append("   return\n");
             code.append(".end method\n");
-        }
-        else {
-            throw new IllegalArgumentException("Parent class is not TypeDeclNode for " + node.getClass().getSimpleName());
+        } else {
+            throw new IllegalArgumentException(
+                    "Parent class is not TypeDeclNode for " + node.getClass().getSimpleName());
         }
     }
-
 
     private String loadInstructionForType(ASTNode type) {
         if (type instanceof PrimitiveTypeNode) {
@@ -407,16 +493,85 @@ public class CodeGenerator {
         String endLabel = generateLabel("L" + (labelCounter++));
         currentBreakLabel = endLabel;
 
-        visit(node.range);
+        if (!(node.range instanceof RangeNode)) {
+            throw new RuntimeException("Expected RangeNode for for-loop range");
+        }
+        RangeNode range = (RangeNode) node.range;
+
+        visit(range.lowerBound);
+        code.append("istore_0\n");
+
+        visit(range.upperBound);
+        code.append("istore_1\n");
         code.append(startLabel).append(":\n");
+
+        code.append("iload_0\n");
+        code.append("iload_1\n");
+        code.append("if_icmpgt ").append(endLabel).append("\n");
 
         for (ASTNode stmt : node.body) {
             visit(stmt);
         }
 
+        code.append("iinc 0 1\n");
+
         code.append("goto ").append(startLabel).append("\n");
         code.append(endLabel).append(":\n");
     }
+
+    // private void visitForLoop(ForLoopNode node) {
+    //     String startLabel = generateLabel("L" + (labelCounter++));
+    //     String endLabel = generateLabel("L" + (labelCounter++));
+    //     currentBreakLabel = endLabel;
+
+    //     if (!(node.range instanceof RangeNode)) {
+    //         throw new RuntimeException("Expected RangeNode for for-loop range");
+    //     }
+    //     RangeNode range = (RangeNode) node.range;
+
+    //     // Определяем, нужно ли делать обратный порядок
+    //     boolean reverse = node.reverse != null && node.reverse; // reverse указывает на флаг
+
+    //     // Выставляем нижнюю и верхнюю границу диапазона
+    //     visit(range.lowerBound);
+    //     code.append("istore_0\n");
+
+    //     visit(range.upperBound);
+    //     code.append("istore_1\n");
+
+    //     // Метки для начала и конца цикла
+    //     code.append(startLabel).append(":\n");
+
+    //     if (reverse) {
+    //         // Если нужно идти в обратном порядке, сравниваем, что текущий индекс больше нижней границы
+    //         code.append("iload_0\n"); // Загружаем переменную цикла
+    //         code.append("iload_1\n"); // Загружаем верхнюю границу
+    //         code.append("if_icmplt ").append(endLabel).append("\n"); // Если индекс < нижней границы, выходим из цикла
+    //     } else {
+    //         // Если стандартный порядок, то проверяем, что переменная цикла меньше или равна верхней границе
+    //         code.append("iload_0\n");
+    //         code.append("iload_1\n");
+    //         code.append("if_icmpgt ").append(endLabel).append("\n");
+    //     }
+
+    //     // Генерируем тело цикла
+    //     for (ASTNode stmt : node.body) {
+    //         visit(stmt);
+    //     }
+
+    //     // Изменяем шаг итерации
+    //     if (reverse) {
+    //         // Если reverse, декрементируем переменную цикла
+    //         code.append("iinc 0 -1\n");
+    //     } else {
+    //         // Если обычный порядок, инкрементируем переменную цикла
+    //         code.append("iinc 0 1\n");
+    //     }
+
+    //     // Переход к началу цикла
+    //     code.append("goto ").append(startLabel).append("\n");
+    //     code.append(endLabel).append(":\n");
+    // }
 
     private void visitBreak(BreakNode node) {
         code.append("goto ").append(currentBreakLabel).append("\n");
@@ -441,13 +596,22 @@ public class CodeGenerator {
         code.append("   ldc ").append(node.value ? 1 : 0).append("\n");
     }
 
-    private void visitArrayAccess(ArrayAccessNode node) {
-        visit(node.index);
+    // private void visitArrayAccess(ArrayAccessNode node) {
+    //     visit(node.index);
 
-        code.append("aload ").append(node.array).append("\n");
-        code.append("iaload\n");
+    //     code.append("aload ").append(node.array).append("\n");
+    //     code.append("iaload\n");
+    // }
+    private void visitArrayAccess(ArrayAccessNode node, boolean onlyAccess) {
+        VarDeclNode varDecl = symbolTable.get(node.array);
+        int inx = varDecl.varIndex;
+        code.append("   aload_").append(inx).append("\n");
+        if (onlyAccess) {
+            visit(node.index);
+            code.append("   iaload\n");
+        }
+        
     }
-
     private void visitBinaryOp(BinaryOpNode node) {
         visit(node.left);
         visit(node.right);
@@ -467,10 +631,10 @@ public class CodeGenerator {
                 break;
             case ">":
                 code.append("if_icmpgt LABEL_TRUE\n");
-                code.append("iconst_0\n"); 
+                code.append("iconst_0\n");
                 code.append("goto LABEL_END\n");
                 code.append("LABEL_TRUE:\n");
-                code.append("iconst_1\n"); 
+                code.append("iconst_1\n");
                 code.append("LABEL_END:\n");
                 break;
             case ">=":
@@ -498,7 +662,14 @@ public class CodeGenerator {
                 code.append("LABEL_END:\n");
                 break;
             case "=":
-            case "==":
+                code.append("if_icmpeq LABEL_TRUE\n");
+                code.append("iconst_0\n");
+                code.append("goto LABEL_END\n");
+                code.append("LABEL_TRUE:\n");
+                code.append("iconst_1\n");
+                code.append("LABEL_END:\n");
+                break;
+            case "/=":
                 code.append("if_icmpeq LABEL_TRUE\n");
                 code.append("iconst_0\n");
                 code.append("goto LABEL_END\n");
