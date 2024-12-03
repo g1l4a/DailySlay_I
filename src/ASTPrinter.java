@@ -65,6 +65,8 @@ public class ASTPrinter {
             printRecordInitNode((RecordInitNode) node, indent);
         } else if (node instanceof ParameterDeclNode) {
             printParameterDeclNode((ParameterDeclNode) node, indent);
+        } else if (node instanceof BinaryOpNode) {
+            printBinaryOpNode((BinaryOpNode) node, indent);
         }
 
     }
@@ -215,7 +217,7 @@ public class ASTPrinter {
 
     private void printArrayAccessNode(ArrayAccessNode node, String indent) {
         System.out.println(indent + "array:");
-        //printAST(node.array, indent + "  ");
+        System.out.println(node.array + " " + indent + "  ");
         System.out.println(indent + "index:");
         printAST(node.index, indent + "  ");
     }
@@ -267,5 +269,13 @@ public class ASTPrinter {
         for (FieldAssignmentNode fieldAssignment : node.fieldAssignments) {
             printFieldAssignmentNode(fieldAssignment, indent + "  ");
         }
+    }
+
+    private void printBinaryOpNode(BinaryOpNode node, String indent) {
+        System.out.println(indent + "left:");
+        printAST(node.left, indent + "  ");
+        System.out.println(indent + "operator: " + node.operator);
+        System.out.println(indent + "right:");
+        printAST(node.right, indent + "  ");
     }
 }

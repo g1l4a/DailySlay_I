@@ -125,6 +125,7 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     public ASTNode visitAssignment(ImpGrammarParser.AssignmentContext ctx) {
         ASTNode left = visit(ctx.modifiablePrimary());
         ASTNode right = visit(ctx.expression());
+        System.out.println(ctx.expression());
         return new AssignmentNode(left, right);
     }
 
@@ -194,7 +195,7 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
     @Override
     public ASTNode visitRange(ImpGrammarParser.RangeContext ctx) {
         ASTNode lowerBound = visit(ctx.expression(0));
-        ASTNode upperBound = visit(ctx.expression(0));
+        ASTNode upperBound = visit(ctx.expression(1));
         return new RangeNode(lowerBound, upperBound);
     }
 
@@ -217,10 +218,6 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitExpression(ImpGrammarParser.ExpressionContext ctx) {
-        for (int i = 0; i < ctx.relation().size(); i++) {
-            ASTNode relationNode = visit(ctx.relation(i));
-        }
-
         List<ASTNode> relations = new ArrayList<>();
         List<String> operators = new ArrayList<>();
 
@@ -242,7 +239,8 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
             ASTNode right = relations.get(i + 1);
             expressionNode = new BinaryExpressionNode((ExpressionNode) expressionNode, operator, (ExpressionNode) right);
         }
-
+        System.out.println(relations);
+        System.out.println(operators);
         return expressionNode;
     }
 
@@ -328,6 +326,34 @@ public class Visitor extends ImpGrammarBaseVisitor<ASTNode> {
 
         return expressionNode;
     }
+
+    @Override
+    public ASTNode visitSimple(ImpGrammarParser.SimpleContext ctx) {
+        List<ASTNode> factors = new ArrayList<>();
+        List<String> operators = new ArrayList<>();
+
+        for (int i = 0; i < ctx.factor().size(); i++) {
+            factors.add(visit(ctx.factor(i)));
+        }
+
+        for (int i = 1; i < ctx.getChildCount(); i += 2) {
+            operators.add(ctx.getChild(i).getText());
+        }
+
+        if (factors.size() == 1) {
+            return factors.get(0);
+        }
+
+        ASTNode expressionNode = factors.get(0);
+        for (int i = 0; i < operators.size(); i++) {
+            String operator = operators.get(i);
+            ASTNode right = factors.get(i + 1);
+            expressionNode = new BinaryExpressionNode((ExpressionNode) expressionNode, operator, (ExpressionNode) right);
+        }
+
+        return expressionNode;
+    }
+
 
 
     @Override
