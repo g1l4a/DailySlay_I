@@ -3,10 +3,9 @@ public class ASTPrinter {
     public void printAST(ASTNode node, String indent) {
         if (node == null) return;
 
-        // Print the class name of the current AST node
+        
         System.out.println(indent + node.getClass().getSimpleName());
 
-        // Dispatch based on the specific node type
         if (node instanceof ProgramNode) {
             printProgramNode((ProgramNode) node, indent);
         } else if (node instanceof VarDeclNode) {

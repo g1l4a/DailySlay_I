@@ -1,7 +1,7 @@
-var data: array [3] integer
-for i in 0..2 loop
-    data[i] := i + 10
-end
-print(data[0])
-print(data[1])
-print(data[2])
+var x: integer is 10
+var y: integer is 20
+var z: integer
+z := x + y * 2 + (x - y / 2)
+print(x)
+print(y)
+print(z)

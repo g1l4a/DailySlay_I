@@ -8,7 +8,7 @@ public class SymbolTable {
 
     public SymbolTable() {
         this.scopes = new Stack<>();
-        enterScope(); // Start with a global scope
+        enterScope();
     }
 
     public void enterScope() {
@@ -47,7 +47,6 @@ public class SymbolTable {
         return false;
     }
 
-    // Methods for handling routines
     private final Map<String, RoutineDeclNode> routines = new HashMap<>();
 
     public void putRoutine(String name, RoutineDeclNode routine) {
